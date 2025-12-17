@@ -11,6 +11,7 @@
 import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../models/Setting.dart'; // Settings model
 
 class StorageService extends GetxService {
   late SharedPreferences _prefs;
@@ -23,6 +24,7 @@ class StorageService extends GetxService {
   static const String keyCartCache = 'cart_cache';
   static const String keyIsFirstLaunch = 'is_first_launch';
   static const String keyThemeMode = 'theme_mode';
+  static const String keyAppSettings = 'app_settings';
   
   /// Initialize SharedPreferences
   Future<StorageService> init() async {
@@ -190,4 +192,26 @@ class StorageService extends GetxService {
     await clearRefreshToken();
     await clearUser();
   }
+
+  // ============ APP SETTINGS ============
+
+  /// Save app settings
+  Future<bool> saveSettings(Data settings) async {
+    return await _prefs.setString(keyAppSettings, jsonEncode(settings.toJson()));
+  }
+
+  /// Get app settings
+  Data? getSettings() {
+    final settingsStr = _prefs.getString(keyAppSettings);
+    if (settingsStr != null && settingsStr.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(settingsStr);
+        return Data.fromJson(decoded);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
 }
+

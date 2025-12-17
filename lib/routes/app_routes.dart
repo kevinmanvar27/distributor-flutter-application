@@ -19,9 +19,11 @@ import '../modules/notifications/notifications_view.dart';
 import '../modules/notifications/notifications_binding.dart';
 import '../modules/wishlist/wishlist_view.dart';
 import '../modules/wishlist/wishlist_binding.dart';
+import '../modules/invoice/invoice_view.dart';
+import '../modules/invoice/invoice_binding.dart';
 import '../modules/subcategories/subcategories_view.dart';
-import '../modules/subcategories/subcategory_products_view.dart';
 import '../modules/subcategories/subcategories_binding.dart';
+import '../modules/subcategories/subcategory_products_view.dart';
 import '../modules/search/search_view.dart';
 import '../modules/search/search_binding.dart';
 
@@ -48,6 +50,7 @@ abstract class Routes {
   static const paymentMethods = '/payment-methods';
   static const notifications = '/notifications';
   static const wishlist = '/wishlist';
+  static const invoice = '/invoice';
   static const support = '/support';
 }
 
@@ -154,6 +157,13 @@ class AppPages {
       page: () => const WishlistView(),
       binding: WishlistBinding(),
       transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: Routes.invoice,
+      page: () => const InvoiceView(),
+      binding: InvoiceBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
     ),
     GetPage(
       name: Routes.support,

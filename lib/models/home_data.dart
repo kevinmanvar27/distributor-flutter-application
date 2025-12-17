@@ -1,5 +1,6 @@
+/*
 // Home Data Models
-// 
+//
 // Models for /home API response with fromJson factories
 // Note: Using prefixed names to avoid conflicts with Flutter classes
 
@@ -61,8 +62,8 @@ class HomepageData {
       unreadNotificationsCount: json['unread_notifications_count'] ?? 0,
       wishlistCount: json['wishlist_count'] ?? 0,
       announcements: json['announcements'] ?? [],
-      branding: json['branding'] != null 
-          ? HomeBranding.fromJson(json['branding']) 
+      branding: json['branding'] != null
+          ? HomeBranding.fromJson(json['branding'])
           : null,
     );
   }
@@ -255,8 +256,8 @@ class HomeProduct {
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
       updatedAt: DateTime.tryParse(json['updated_at'] ?? '') ?? DateTime.now(),
       discountedPrice: json['discounted_price']?.toString() ?? '0',
-      mainPhoto: json['main_photo'] != null 
-          ? HomeImage.fromJson(json['main_photo']) 
+      mainPhoto: json['main_photo'] != null
+          ? HomeImage.fromJson(json['main_photo'])
           : null,
     );
   }
@@ -301,3 +302,4 @@ class HomeProductCategory {
     );
   }
 }
+*/

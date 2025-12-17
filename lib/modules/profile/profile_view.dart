@@ -1,8 +1,10 @@
 // Profile View
 // 
 // User profile screen with:
-// - User avatar and info display
-// - Edit profile form
+// - User avatar with upload/remove options
+// - Edit profile form with all fields
+// - Change password
+// - Delete account
 // - Account settings menu
 // - Logout button
 
@@ -54,7 +56,7 @@ class ProfileView extends GetView<ProfileController> {
             padding: const EdgeInsets.all(AppTheme.spacingMD),
             child: Column(
               children: [
-                // Profile header
+                // Profile header with avatar
                 _buildProfileHeader(context),
                 const SizedBox(height: AppTheme.spacingXL),
                 // Edit form or info display
@@ -127,24 +129,69 @@ class ProfileView extends GetView<ProfileController> {
   Widget _buildProfileHeader(BuildContext context) {
     return Column(
       children: [
-        // Avatar
-        Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppTheme.primaryColor,
-            boxShadow: AppTheme.shadowMD,
-          ),
-          child: Center(
-            child: Text(
-              controller.userInitials,
-              style: AppTheme.displaySmall.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+        // Avatar with edit option
+        Stack(
+          children: [
+            Obx(() => GestureDetector(
+              onTap: controller.showAvatarOptions,
+              child: Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.primaryColor,
+                  boxShadow: AppTheme.shadowMD,
+                  image: controller.userAvatarUrl != null
+                      ? DecorationImage(
+                          image: NetworkImage(controller.userAvatarUrl!),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                ),
+                child: controller.userAvatarUrl == null
+                    ? Center(
+                        child: Text(
+                          controller.userInitials,
+                          style: AppTheme.displaySmall.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
+                    : null,
+              ),
+            )),
+            // Camera icon overlay
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: GestureDetector(
+                onTap: controller.showAvatarOptions,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  child: Obx(() => controller.isUploadingAvatar.value
+                      ? const Padding(
+                          padding: EdgeInsets.all(6),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(
+                          Icons.camera_alt,
+                          size: 16,
+                          color: Colors.white,
+                        )),
+                ),
               ),
             ),
-          ),
+          ],
         ),
         const SizedBox(height: AppTheme.spacingMD),
         // Name
@@ -169,7 +216,7 @@ class ProfileView extends GetView<ProfileController> {
   // ─────────────────────────────────────────────────────────────────────────────
 
   Widget _buildProfileInfo(BuildContext context) {
-    return Container(
+    return Obx(() => Container(
       decoration: BoxDecoration(
         color: AppTheme.surfaceColor,
         borderRadius: BorderRadius.circular(AppTheme.radiusMD),
@@ -191,14 +238,24 @@ class ProfileView extends GetView<ProfileController> {
           const Divider(height: 1),
           _buildInfoTile(
             icon: Icons.phone_outlined,
-            label: 'Phone',
-            value: controller.userPhone.isNotEmpty 
-                ? controller.userPhone 
-                : 'Not provided',
+            label: 'Mobile Number',
+            value:  controller.userMobileNumber,
+          ),
+          const Divider(height: 1),
+          _buildInfoTile(
+            icon: Icons.cake_outlined,
+            label: 'Date of Birth',
+            value: controller.userDateOfBirth,
+          ),
+          const Divider(height: 1),
+          _buildInfoTile(
+            icon: Icons.location_on_outlined,
+            label: 'Address',
+            value:controller.userAddress,
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildInfoTile({
@@ -258,11 +315,34 @@ class ProfileView extends GetView<ProfileController> {
             hint: 'Enter your email',
           ),
           const SizedBox(height: AppTheme.spacingMD),
-          // Phone field
+          // Mobile Number field
           CustomTextField.phone(
-            controller: controller.phoneController,
-            label: 'Phone',
-            hint: 'Enter your phone number',
+            controller: controller.mobileNumberController,
+            label: 'Mobile Number',
+            hint: 'Enter your mobile number',
+          ),
+          const SizedBox(height: AppTheme.spacingMD),
+          // Date of Birth field
+          GestureDetector(
+            onTap: controller.selectDateOfBirth,
+            child: AbsorbPointer(
+              child: CustomTextField(
+                controller: controller.dateOfBirthController,
+                label: 'Date of Birth',
+                hint: 'Select your date of birth',
+                prefixIcon: const Icon(Icons.cake_outlined),
+                suffixIcon: const Icon(Icons.calendar_today_outlined),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppTheme.spacingMD),
+          // Address field
+          CustomTextField(
+            controller: controller.addressController,
+            label: 'Address',
+            hint: 'Enter your address',
+            prefixIcon: const Icon(Icons.location_on_outlined),
+            maxLines: 2,
           ),
           const SizedBox(height: AppTheme.spacingLG),
           // Save button
@@ -298,27 +378,6 @@ class ProfileView extends GetView<ProfileController> {
               'Settings',
               style: AppTheme.headingSmall,
             ),
-          ),
-          const Divider(height: 1),
-          _buildSettingsTile(
-            icon: Icons.shopping_bag_outlined,
-            title: 'My Orders',
-            subtitle: 'View your order history',
-            onTap: () => Get.toNamed('/orders'),
-          ),
-          const Divider(height: 1),
-          _buildSettingsTile(
-            icon: Icons.location_on_outlined,
-            title: 'Addresses',
-            subtitle: 'Manage delivery addresses',
-            onTap: () => Get.toNamed('/addresses'),
-          ),
-          const Divider(height: 1),
-          _buildSettingsTile(
-            icon: Icons.payment_outlined,
-            title: 'Payment Methods',
-            subtitle: 'Manage payment options',
-            onTap: () => Get.toNamed('/payment-methods'),
           ),
           const Divider(height: 1),
           _buildSettingsTile(
@@ -362,6 +421,13 @@ class ProfileView extends GetView<ProfileController> {
           }),
           const Divider(height: 1),
           _buildSettingsTile(
+            icon: Icons.lock_outline,
+            title: 'Change Password',
+            subtitle: 'Update your password',
+            onTap: controller.showChangePasswordDialog,
+          ),
+          const Divider(height: 1),
+          _buildSettingsTile(
             icon: Icons.help_outline,
             title: 'Help & Support',
             subtitle: 'Get help or contact us',
@@ -374,6 +440,15 @@ class ProfileView extends GetView<ProfileController> {
             subtitle: 'App version and info',
             onTap: () => _showAboutDialog(context),
           ),
+          const Divider(height: 1),
+          _buildSettingsTile(
+            icon: Icons.delete_forever_outlined,
+            title: 'Delete Account',
+            subtitle: 'Permanently delete your account',
+            onTap: controller.showDeleteAccountDialog,
+            iconColor: AppTheme.errorColor,
+            titleColor: AppTheme.errorColor,
+          ),
         ],
       ),
     );
@@ -385,10 +460,17 @@ class ProfileView extends GetView<ProfileController> {
     required String subtitle,
     required VoidCallback onTap,
     Widget? trailing,
+    Color? iconColor,
+    Color? titleColor,
   }) {
     return ListTile(
-      leading: Icon(icon, color: AppTheme.textSecondary),
-      title: Text(title, style: AppTheme.bodyLarge),
+      leading: Icon(icon, color: iconColor ?? AppTheme.textSecondary),
+      title: Text(
+        title, 
+        style: AppTheme.bodyLarge.copyWith(
+          color: titleColor,
+        ),
+      ),
       subtitle: Text(
         subtitle,
         style: AppTheme.bodySmall.copyWith(color: AppTheme.textTertiary),

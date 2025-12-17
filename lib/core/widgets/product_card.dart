@@ -15,13 +15,22 @@
 // TODO: Customize styles in AppTheme
 
 import 'package:flutter/material.dart';
-import '../../models/product.dart';
 import '../theme/app_theme.dart';
 
 enum ProductCardVariant { grid, list }
 
 class ProductCard extends StatelessWidget {
-  final Product product;
+  // Product data
+  final int productId;
+  final String name;
+  final String? imageUrl;
+  final double mrp;
+  final double sellingPrice;
+  final bool inStock;
+  final double? discountPercent;
+  final String? description;
+  
+  // UI configuration
   final ProductCardVariant variant;
   final VoidCallback? onTap;
   final VoidCallback? onAddToCart;
@@ -33,7 +42,14 @@ class ProductCard extends StatelessWidget {
   
   const ProductCard({
     super.key,
-    required this.product,
+    required this.productId,
+    required this.name,
+    this.imageUrl,
+    required this.mrp,
+    required this.sellingPrice,
+    this.inStock = true,
+    this.discountPercent,
+    this.description,
     this.variant = ProductCardVariant.grid,
     this.onTap,
     this.onAddToCart,
@@ -43,6 +59,9 @@ class ProductCard extends StatelessWidget {
     this.showFavorite = true,
     this.heroTagPrefix,
   });
+  
+  // Computed properties
+  bool get hasDiscount => sellingPrice < mrp;
   
   @override
   Widget build(BuildContext context) {
@@ -67,8 +86,8 @@ class ProductCard extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   _buildProductImage(),
-                  if (product.isOnSale) _buildSaleBadge(),
-                  if (!product.inStock) _buildOutOfStockOverlay(),
+                  if (hasDiscount) _buildSaleBadge(),
+                  if (!inStock) _buildOutOfStockOverlay(),
                   if (showFavorite) _buildFavoriteButton(),
                 ],
               ),
@@ -80,7 +99,7 @@ class ProductCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    product.name,
+                    name,
                     style: AppTheme.bodyMedium.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -89,7 +108,7 @@ class ProductCard extends StatelessWidget {
                   ),
                   const SizedBox(height: AppTheme.spacingXs),
                   _buildPriceRow(),
-                  // if (showAddToCart && product.inStock) ...[
+                  // if (showAddToCart && inStock) ...[
                   //   const SizedBox(height: AppTheme.spacingSm),
                   //   _buildAddToCartButton(),
                   // ],
@@ -118,8 +137,8 @@ class ProductCard extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   _buildProductImage(),
-                  if (product.isOnSale) _buildSaleBadge(small: true),
-                  if (!product.inStock) _buildOutOfStockOverlay(),
+                  if (hasDiscount) _buildSaleBadge(small: true),
+                  if (!inStock) _buildOutOfStockOverlay(),
                 ],
               ),
             ),
@@ -132,7 +151,7 @@ class ProductCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      product.name,
+                      name,
                       style: AppTheme.bodyMedium.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -140,9 +159,9 @@ class ProductCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: AppTheme.spacingXs),
-                    if (product.description.isNotEmpty)
+                    if (description != null && description!.isNotEmpty)
                       Text(
-                        product.description,
+                        description!,
                         style: AppTheme.bodySmall.copyWith(
                           color: AppTheme.textSecondary,
                         ),
@@ -169,7 +188,7 @@ class ProductCard extends StatelessWidget {
                       ),
                       onPressed: onFavorite,
                     ),
-                  if (showAddToCart && product.inStock)
+                  if (showAddToCart && inStock)
                     IconButton(
                       icon: const Icon(Icons.add_shopping_cart),
                       color: AppTheme.primaryColor,
@@ -185,9 +204,9 @@ class ProductCard extends StatelessWidget {
   }
   
   Widget _buildProductImage() {
-    final imageWidget = product.imageUrl != null
+    final imageWidget = imageUrl != null
         ? Image.network(
-            product.imageUrl!,
+            imageUrl!,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
             loadingBuilder: (context, child, loadingProgress) {
@@ -199,7 +218,7 @@ class ProductCard extends StatelessWidget {
     
     if (heroTagPrefix != null) {
       return Hero(
-        tag: '${heroTagPrefix}_${product.id}',
+        tag: '${heroTagPrefix}_$productId',
         child: imageWidget,
       );
     }
@@ -244,8 +263,8 @@ class ProductCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppTheme.radiusSm),
         ),
         child: Text(
-          product.discountPercentage > 0
-              ? '-${product.discountPercentage}%'
+          (discountPercent != null && discountPercent! > 0)
+              ? '-${discountPercent!.toStringAsFixed(0)}%'
               : 'SALE',
           style: TextStyle(
             color: Colors.white,
@@ -309,21 +328,24 @@ class ProductCard extends StatelessWidget {
   }
   
   Widget _buildPriceRow() {
+    final formattedSellingPrice = '₹${sellingPrice.toStringAsFixed(2)}';
+    final formattedMrp = '₹${mrp.toStringAsFixed(2)}';
+    
     return Row(
       children: [
         // Show selling price as main price
         Text(
-          product.formattedSalePrice,
+          formattedSellingPrice,
           style: AppTheme.bodyMedium.copyWith(
             fontWeight: FontWeight.bold,
             color: AppTheme.primaryColor,
           ),
         ),
         // Show MRP crossed out if there's a discount
-        if (product.hasDiscount) ...[
+        if (hasDiscount) ...[
           const SizedBox(width: AppTheme.spacingXs),
           Text(
-            product.formattedPrice,
+            formattedMrp,
             style: AppTheme.bodySmall.copyWith(
               color: AppTheme.textSecondary,
               decoration: TextDecoration.lineThrough,
@@ -331,23 +353,6 @@ class ProductCard extends StatelessWidget {
           ),
         ],
       ],
-    );
-  }
-  
-  Widget _buildAddToCartButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: onAddToCart,
-        icon: const Icon(Icons.add_shopping_cart, size: 18),
-        label: const Text('Add to Cart'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.primaryColor,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          textStyle: AppTheme.bodySmall.copyWith(fontWeight: FontWeight.w600),
-        ),
-      ),
     );
   }
 }

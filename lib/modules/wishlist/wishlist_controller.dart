@@ -8,7 +8,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../models/product.dart';
+import '../../models/category.dart'; // Use ProductItem from unified model
 import '../../core/services/storage_service.dart';
 import 'dart:convert';
 
@@ -16,7 +16,7 @@ class WishlistController extends GetxController {
   final StorageService _storage = Get.find<StorageService>();
   
   /// Reactive list of wishlist products
-  final RxList<Product> wishlistItems = <Product>[].obs;
+  final RxList<ProductItem> wishlistItems = <ProductItem>[].obs;
   
   /// Loading state
   final RxBool isLoading = false.obs;
@@ -39,7 +39,7 @@ class WishlistController extends GetxController {
       if (wishlistJson != null && wishlistJson.isNotEmpty) {
         final List<dynamic> decoded = jsonDecode(wishlistJson);
         wishlistItems.value = decoded
-            .map((item) => Product.fromJson(item))
+            .map((item) => ProductItem.fromJson(item))
             .toList();
       }
     } catch (e) {
@@ -61,37 +61,10 @@ class WishlistController extends GetxController {
     }
   }
   
-  /// Convert Product to JSON for storage
-  Map<String, dynamic> _productToJson(Product product) {
-    return {
-      'id': product.id,
-      'name': product.name,
-      'slug': product.slug,
-      'description': product.description,
-      'mrp': product.mrp,
-      'selling_price': product.sellingPrice,
-      'in_stock': product.inStock,
-      'stock_quantity': product.stockQuantity,
-      'status': product.status,
-      'main_photo_id': product.mainPhotoId,
-      'product_gallery': product.productGallery,
-      'product_categories': product.productCategories,
-      'meta_title': product.metaTitle,
-      'meta_description': product.metaDescription,
-      'meta_keywords': product.metaKeywords,
-      'created_at': product.createdAt.toIso8601String(),
-      'updated_at': product.updatedAt.toIso8601String(),
-      'main_photo': product.mainPhoto != null ? {
-        'id': product.mainPhoto!.id,
-        'name': product.mainPhoto!.name,
-        'file_name': product.mainPhoto!.fileName,
-        'mime_type': product.mainPhoto!.mimeType,
-        'path': product.mainPhoto!.path,
-        'size': product.mainPhoto!.size,
-        'created_at': product.mainPhoto!.createdAt.toIso8601String(),
-        'updated_at': product.mainPhoto!.updatedAt.toIso8601String(),
-      } : null,
-    };
+  /// Convert ProductItem to JSON for storage
+  /// Uses the model's toJson() method for consistency
+  Map<String, dynamic> _productToJson(ProductItem product) {
+    return product.toJson();
   }
   
   /// Check if a product is in the wishlist
@@ -100,7 +73,7 @@ class WishlistController extends GetxController {
   }
   
   /// Toggle wishlist status for a product
-  void toggleWishlist(Product product) {
+  void toggleWishlist(ProductItem product) {
     if (isInWishlist(product.id)) {
       removeFromWishlist(product.id);
     } else {
@@ -109,7 +82,7 @@ class WishlistController extends GetxController {
   }
   
   /// Add a product to the wishlist
-  void addToWishlist(Product product) {
+  void addToWishlist(ProductItem product) {
     // Check for duplicates
     if (isInWishlist(product.id)) {
       _showSnackbar('Already in Wishlist', 'This product is already in your wishlist');

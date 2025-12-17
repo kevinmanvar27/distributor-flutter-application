@@ -6,25 +6,25 @@
 // - featuredProducts (Featured Products section)
 // - latestProducts (Latest Products section)
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:get/get.dart';
 import '../../core/services/api_service.dart';
-import '../../models/home_data.dart';
+import '../../models/Home.dart';
 
 class HomeController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
   
   // Home data from /home API
-  final Rx<HomepageData?> homeData = Rx<HomepageData?>(null);
+  final Rx<HomeData?> homeData = Rx<HomeData?>(null);
   
   // Categories list
-  final RxList<HomeCategory> categories = <HomeCategory>[].obs;
+  final RxList<Category> categories = <Category>[].obs;
   
   // Featured products list
-  final RxList<HomeProduct> featuredProducts = <HomeProduct>[].obs;
+  final RxList<Product> featuredProducts = <Product>[].obs;
   
   // Latest products list
-  final RxList<HomeProduct> latestProducts = <HomeProduct>[].obs;
+  final RxList<Product> latestProducts = <Product>[].obs;
   
   // Loading & error states
   final RxBool isLoading = false.obs;
@@ -52,7 +52,7 @@ class HomeController extends GetxController {
       
       if (response.statusCode == 200 && response.data != null) {
         // Parse the response using Homepage model
-        final homepage = Homepage.fromJson(response.data);
+        final homepage = Home.fromJson(response.data);
         
         if (homepage.success) {
           homeData.value = homepage.data;
@@ -68,6 +68,19 @@ class HomeController extends GetxController {
           // Update latest products list
           latestProducts.assignAll(homepage.data.latestProducts);
           debugPrint('HomeController: Loaded ${latestProducts.length} latest products');
+          
+          // Print image URLs to console
+          debugPrint('🖼️ ===== HOME SCREEN IMAGE URLs =====');
+          for (var category in categories) {
+            debugPrint('🖼️ Category "${category.name}" - Image: ${category.image?.fullUrl ?? "null"}');
+          }
+          for (var product in featuredProducts) {
+            debugPrint('🖼️ Featured Product "${product.name}" - Image: ${product.mainPhoto?.fullUrl ?? "null"}');
+          }
+          for (var product in latestProducts) {
+            debugPrint('🖼️ Latest Product "${product.name}" - Image: ${product.mainPhoto?.fullUrl ?? "null"}');
+          }
+          debugPrint('🖼️ ===================================');
           
         } else {
           throw Exception(homepage.message.isNotEmpty ? homepage.message : 'Failed to load home data');

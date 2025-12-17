@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/dynamic_appbar.dart';
-import '../../models/home_data.dart';
+import '../../models/Home.dart' hide Image;
 import '../../routes/app_routes.dart';
 import '../cart/cart_controller.dart';
 import '../main/main_controller.dart';
@@ -245,7 +245,7 @@ class HomeView extends GetView<HomeController> {
   }
   
   /// Build single category item as icon - CLICKABLE to open subcategories
-  Widget _buildCategoryItem(HomeCategory category) {
+  Widget _buildCategoryItem(Category category) {
     // Map category names to icons
     IconData categoryIcon = _getCategoryIcon(category.name);
     
@@ -293,7 +293,7 @@ class HomeView extends GetView<HomeController> {
   }
   
   /// Navigate to subcategories screen
-  void _navigateToSubcategories(HomeCategory category) {
+  void _navigateToSubcategories(Category category) {
     Get.toNamed(
       '/subcategories/${category.id}',
       arguments: category,
@@ -358,7 +358,7 @@ class HomeView extends GetView<HomeController> {
   /// Build product section (Featured or Latest)
   Widget _buildProductSection({
     required String title,
-    required List<HomeProduct> products,
+    required List<Product> products,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -392,7 +392,7 @@ class HomeView extends GetView<HomeController> {
   }
   
   /// Build product card - CLICKABLE, navigates to Product Detail
-  Widget _buildProductCard(HomeProduct product) {
+  Widget _buildProductCard(Product product) {
     return GestureDetector(
       onTap: () => _navigateToProductDetail(product.id),
       child: Container(
@@ -423,9 +423,9 @@ class HomeView extends GetView<HomeController> {
                 child: Container(
                   width: double.infinity,
                   color: Colors.grey[100],
-                  child: product.imageUrl != null
+                  child: product.mainPhoto?.fullUrl != null
                       ? Image.network(
-                          product.imageUrl!,
+                          product.mainPhoto!.fullUrl!,
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => const Center(
                             child: Icon(
@@ -467,17 +467,17 @@ class HomeView extends GetView<HomeController> {
                     Row(
                       children: [
                         Text(
-                          '₹${product.sellingPriceValue.toStringAsFixed(0)}',
+                          '₹${product.mrp}',
                           style: AppTheme.titleSmall.copyWith(
                             color: AppTheme.primaryColor,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        if (product.hasDiscount) ...[
+                        if (product.discountedPrice.isBool) ...[
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              '₹${product.mrpValue.toStringAsFixed(0)}',
+                              '₹${product.mrp}',
                               style: AppTheme.bodySmall.copyWith(
                                 color: AppTheme.textSecondary,
                                 decoration: TextDecoration.lineThrough,

@@ -100,7 +100,14 @@ class WishlistView extends GetView<WishlistController> {
         itemBuilder: (context, index) {
           final product = controller.wishlistItems[index];
           return ProductCard(
-            product: product,
+            productId: product.id,
+            name: product.name,
+            imageUrl: product.imageUrl,
+            mrp: product.mrpValue,
+            sellingPrice: product.sellingPriceValue,
+            inStock: product.inStock,
+            discountPercent: product.discountPercent,
+            description: product.description,
             variant: ProductCardVariant.grid,
             onTap: () => _navigateToProductDetail(product.id),
             onFavorite: () => controller.removeFromWishlist(product.id),

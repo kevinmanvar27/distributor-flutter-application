@@ -251,15 +251,23 @@ class SearchView extends GetView<search.SearchController> {
                 final product = controller.searchResults[index];
                 final wishlistController = Get.find<WishlistController>();
                 return ProductCard(
-                  product: product,
+                  productId: product.id,
+                  name: product.name,
+                  imageUrl: product.imageUrl,
+                  mrp: product.mrpValue,
+                  sellingPrice: product.sellingPriceValue,
+                  inStock: product.inStock,
+                  discountPercent: product.discountPercent,
+                  description: product.description,
                   variant: ProductCardVariant.grid,
                   onTap: () => controller.goToProductDetail(product),
                   onAddToCart: () {
                     final cartController = Get.find<CartController>();
-                    cartController.addToCart(product);
+                    cartController.addToCart(product.toProductItem());
                   },
+                  showFavorite: true,
                   onFavorite: () {
-                    wishlistController.toggleWishlist(product);
+                    wishlistController.toggleWishlist(product.toProductItem());
                   },
                   isFavorite: wishlistController.isInWishlist(product.id),
                 );

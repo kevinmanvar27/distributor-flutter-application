@@ -1,12 +1,13 @@
 // 
-// Subcategories screen showing all subcategories of a parent category
-// Displays subcategories as icon grid similar to home screen categories
+// Subcategories Screen
+// Shows ONLY subcategories from /categories/{id} API
+// Uses ONLY catagories.dart model (Data class)
 
+import 'package:distributor_app/models/catagories.dart' hide Image;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/dynamic_appbar.dart';
-import '../../models/home_data.dart';
 import 'subcategories_controller.dart';
 
 class SubcategoriesView extends GetView<SubcategoriesController> {
@@ -16,15 +17,67 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: DynamicAppBar(
-        title: controller.parentCategory.value?.name ?? 'Subcategories',
+        title: controller.displayTitle,
       ),
       body: Obx(() {
-        if (controller.subcategories.isEmpty) {
+        // Loading state
+        if (controller.isLoading.value && !controller.hasContent) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        
+        // Error state
+        if (controller.hasError.value && !controller.hasContent) {
+          return _buildErrorState();
+        }
+        
+        // Empty state
+        if (!controller.hasContent) {
           return _buildEmptyState();
         }
         
-        return _buildSubcategoriesGrid();
+        // Show subcategories grid
+        return RefreshIndicator(
+          onRefresh: controller.refresh,
+          child: _buildSubcategoriesGrid(),
+        );
       }),
+    );
+  }
+  
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.spacingLg),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              size: 64,
+              color: AppTheme.textSecondary,
+            ),
+            const SizedBox(height: AppTheme.spacingMd),
+            Text(
+              'Something went wrong',
+              style: AppTheme.titleMedium,
+            ),
+            const SizedBox(height: AppTheme.spacingSm),
+            Obx(() => Text(
+              controller.errorMessage.value,
+              style: AppTheme.bodyMedium.copyWith(
+                color: AppTheme.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            )),
+            const SizedBox(height: AppTheme.spacingLg),
+            ElevatedButton.icon(
+              onPressed: controller.refresh,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Try Again'),
+            ),
+          ],
+        ),
+      ),
     );
   }
   
@@ -53,12 +106,19 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
               ),
               textAlign: TextAlign.center,
             ),
+            const SizedBox(height: AppTheme.spacingLg),
+            ElevatedButton.icon(
+              onPressed: controller.refresh,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Refresh'),
+            ),
           ],
         ),
       ),
     );
   }
   
+  /// Build grid of subcategories
   Widget _buildSubcategoriesGrid() {
     return GridView.builder(
       padding: const EdgeInsets.all(AppTheme.spacingMd),
@@ -76,9 +136,10 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
     );
   }
   
-  Widget _buildSubcategoryItem(HomeCategory subcategory) {
+  /// Build single subcategory item
+  Widget _buildSubcategoryItem(Data subcategory) {
     return GestureDetector(
-      onTap: () => controller.goToSubcategoryProducts(subcategory),
+      onTap: () => controller.onSubcategoryTap(subcategory),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -128,10 +189,10 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            // Product count
-            if (subcategory.productCount > 0)
+            // Item count
+            if (subcategory.productCount != null && subcategory.productCount! > 0)
               Text(
-                '${subcategory.productCount} items',
+                '${subcategory.productCount} products',
                 style: AppTheme.bodySmall.copyWith(
                   color: AppTheme.textSecondary,
                   fontSize: 10,
@@ -146,28 +207,23 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
   Widget _buildIconPlaceholder(String name) {
     return Center(
       child: Icon(
-        _getSubcategoryIcon(name),
+        _getCategoryIcon(name),
         color: AppTheme.primaryColor,
         size: 28,
       ),
     );
   }
   
-  IconData _getSubcategoryIcon(String name) {
+  /// Get icon for category/subcategory based on name
+  IconData _getCategoryIcon(String name) {
     final nameLower = name.toLowerCase();
     
     if (nameLower.contains('tool')) return Icons.build_outlined;
-    if (nameLower.contains('paint')) return Icons.format_paint_outlined;
     if (nameLower.contains('electric')) return Icons.electrical_services_outlined;
     if (nameLower.contains('plumb')) return Icons.plumbing_outlined;
-    if (nameLower.contains('screw') || nameLower.contains('nail')) return Icons.hardware_outlined;
-    if (nameLower.contains('pipe')) return Icons.water_outlined;
-    if (nameLower.contains('wire') || nameLower.contains('cable')) return Icons.cable_outlined;
-    if (nameLower.contains('light') || nameLower.contains('lamp')) return Icons.lightbulb_outlined;
-    if (nameLower.contains('lock') || nameLower.contains('key')) return Icons.lock_outlined;
-    if (nameLower.contains('door') || nameLower.contains('window')) return Icons.door_front_door_outlined;
-    if (nameLower.contains('garden') || nameLower.contains('outdoor')) return Icons.yard_outlined;
-    if (nameLower.contains('safety') || nameLower.contains('protect')) return Icons.health_and_safety_outlined;
+    if (nameLower.contains('paint')) return Icons.format_paint_outlined;
+    if (nameLower.contains('lock')) return Icons.lock_outlined;
+    if (nameLower.contains('garden')) return Icons.yard_outlined;
     
     return Icons.category_outlined;
   }

@@ -1,7 +1,3 @@
-// Main Entry Point
-// 
-// App initialization with GetX and service setup.
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -10,6 +6,7 @@ import 'core/services/storage_service.dart';
 import 'core/services/api_service.dart';
 import 'modules/wishlist/wishlist_controller.dart';
 import 'routes/app_routes.dart';
+import 'models/Setting.dart' as settings_model;
 
 void main() async {
   // Ensure Flutter bindings are initialized
@@ -64,8 +61,8 @@ class DistributorApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       
       // Theme
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme: _getInitialTheme(),
+      darkTheme: AppTheme.darkTheme, // We could also fetch dark theme if needed
       themeMode: ThemeMode.light,
       
       // Routing
@@ -93,5 +90,16 @@ class DistributorApp extends StatelessWidget {
         );
       },
     );
+  }
+
+  ThemeData _getInitialTheme() {
+    try {
+      final storage = Get.find<StorageService>();
+      final settings = storage.getSettings();
+      if (settings != null) {
+        return AppTheme.createThemeFromSettings(settings);
+      }
+    } catch (_) {}
+    return AppTheme.lightTheme;
   }
 }

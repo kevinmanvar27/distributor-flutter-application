@@ -25,7 +25,12 @@ String? buildImageUrl(String? path) {
   }
   
   // Remove leading slash if present
-  final cleanPath = path.startsWith('/') ? path.substring(1) : path;
+  String cleanPath = path.startsWith('/') ? path.substring(1) : path;
+  
+  // Remove 'storage/' prefix if present (API sometimes returns paths with storage/)
+  if (cleanPath.startsWith('storage/')) {
+    cleanPath = cleanPath.substring(8); // Remove 'storage/'
+  }
   
   return '$_storageBaseUrl/$cleanPath';
 }

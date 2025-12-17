@@ -1,11 +1,11 @@
 // Cart View
 // 
 // Shopping cart screen with:
-// - List of cart items with quantity controls
-// - Item removal with swipe-to-delete
-// - Price breakdown (subtotal, tax, total)
+// - Fetch cart items from API
+// - Update quantity
+// - Delete items
+// - Price breakdown
 // - Checkout button
-// - Empty cart state
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -39,6 +39,10 @@ class CartView extends GetView<CartController> {
           return const Center(child: CircularProgressIndicator());
         }
 
+        if (controller.hasError.value) {
+          return _buildErrorState(context);
+        }
+
         if (controller.isEmpty) {
           return _buildEmptyCart(context);
         }
@@ -49,6 +53,49 @@ class CartView extends GetView<CartController> {
         if (controller.isEmpty) return const SizedBox.shrink();
         return _buildCheckoutBar(context);
       }),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Error State
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  Widget _buildErrorState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.spacingXL),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 80,
+              color: AppTheme.errorColor,
+            ),
+            const SizedBox(height: AppTheme.spacingLG),
+            Text(
+              'Failed to load cart',
+              style: AppTheme.headingMedium.copyWith(
+                color: AppTheme.errorColor,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingSM),
+            Text(
+              controller.errorMessage.value,
+              style: AppTheme.bodyMedium.copyWith(
+                color: AppTheme.textTertiary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppTheme.spacingXL),
+            DynamicButton(
+              text: 'Retry',
+              onPressed: controller.fetchCart,
+              leadingIcon: Icons.refresh,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -87,7 +134,6 @@ class CartView extends GetView<CartController> {
             DynamicButton(
               text: 'Browse Products',
               onPressed: () {
-                // Navigate to Home tab (index 0) instead of reopening app
                 final mainController = Get.find<MainController>();
                 mainController.goToHome();
               },
@@ -104,22 +150,25 @@ class CartView extends GetView<CartController> {
   // ─────────────────────────────────────────────────────────────────────────────
 
   Widget _buildCartContent(BuildContext context) {
-    return Column(
-      children: [
-        // Cart items list
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(AppTheme.spacingMD),
-            itemCount: controller.cartItems.length,
-            itemBuilder: (context, index) {
-              final item = controller.cartItems[index];
-              return _buildCartItemCard(context, item);
-            },
+    return RefreshIndicator(
+      onRefresh: controller.fetchCart,
+      child: Column(
+        children: [
+          // Cart items list
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(AppTheme.spacingMD),
+              itemCount: controller.cartItems.length,
+              itemBuilder: (context, index) {
+                final item = controller.cartItems[index];
+                return _buildCartItemCard(context, item);
+              },
+            ),
           ),
-        ),
-        // Price summary
-        _buildPriceSummary(context),
-      ],
+          // Price summary
+          _buildPriceSummary(context),
+        ],
+      ),
     );
   }
 
@@ -127,9 +176,9 @@ class CartView extends GetView<CartController> {
   // Cart Item Card
   // ─────────────────────────────────────────────────────────────────────────────
 
-  Widget _buildCartItemCard(BuildContext context, CartItem item) {
+  Widget _buildCartItemCard(BuildContext context, Item item) {
     return Dismissible(
-      key: Key('cart_item_${item.productId}'),
+      key: Key('cart_item_${item.id}'),
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
@@ -145,7 +194,6 @@ class CartView extends GetView<CartController> {
           size: 28,
         ),
       ),
-      onDismissed: (_) => controller.removeFromCart(item.productId),
       confirmDismiss: (_) => _showRemoveItemDialog(context, item),
       child: Container(
         margin: const EdgeInsets.only(bottom: AppTheme.spacingMD),
@@ -181,7 +229,7 @@ class CartView extends GetView<CartController> {
                     Row(
                       children: [
                         Text(
-                          '\$${item.price.toStringAsFixed(2)}',
+                          '₹${item.priceValue.toStringAsFixed(2)}',
                           style: AppTheme.bodyMedium.copyWith(
                             color: AppTheme.primaryColor,
                             fontWeight: FontWeight.w600,
@@ -190,7 +238,7 @@ class CartView extends GetView<CartController> {
                         if (item.hasDiscount) ...[
                           const SizedBox(width: AppTheme.spacingSM),
                           Text(
-                            '\$${item.displayOriginalPrice.toStringAsFixed(2)}',
+                            '₹${item.displayOriginalPrice.toStringAsFixed(2)}',
                             style: AppTheme.bodySmall.copyWith(
                               color: AppTheme.textTertiary,
                               decoration: TextDecoration.lineThrough,
@@ -204,11 +252,18 @@ class CartView extends GetView<CartController> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        // Quantity controls - uses cart item id
                         _buildQuantityControls(item),
-                        Text(
-                          '\$${item.totalPrice.toStringAsFixed(2)}',
-                          style: AppTheme.headingSmall.copyWith(
-                            color: AppTheme.textPrimary,
+                        const SizedBox(width: AppTheme.spacingSM),
+                        // Total price
+                        Flexible(
+                          child: Text(
+                            '₹${item.totalPrice.toStringAsFixed(2)}',
+                            style: AppTheme.headingSmall.copyWith(
+                              color: AppTheme.textPrimary,
+                            ),
+                            textAlign: TextAlign.end,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -223,14 +278,14 @@ class CartView extends GetView<CartController> {
     );
   }
 
-  Widget _buildProductImage(CartItem item) {
+  Widget _buildProductImage(Item item) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       child: Container(
         width: 80,
         height: 80,
         color: AppTheme.backgroundColor,
-        child: item.imageUrl != null
+        child: item.imageUrl != null && item.imageUrl!.isNotEmpty
             ? Image.network(
                 item.imageUrl!,
                 fit: BoxFit.cover,
@@ -252,47 +307,57 @@ class CartView extends GetView<CartController> {
     );
   }
 
-  Widget _buildQuantityControls(CartItem item) {
+  Widget _buildQuantityControls(Item item) {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: AppTheme.borderColor),
         borderRadius: BorderRadius.circular(AppTheme.radiusSM),
       ),
-      child: Row(
+      child: Obx(() => Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Decrement button
+          // Decrement button - uses cart item id
           _buildQuantityButton(
             icon: Icons.remove,
-            onPressed: () => controller.decrementQuantity(item.productId),
-            enabled: item.quantity > 1,
+            onPressed: controller.isUpdating.value 
+                ? null 
+                : () => controller.decrementQuantity(item.id),
+            enabled: !controller.isUpdating.value,
           ),
           // Quantity display
           Container(
             constraints: const BoxConstraints(minWidth: 40),
             padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingSM),
-            child: Text(
-              '${item.quantity}',
-              style: AppTheme.bodyMedium.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
+            child: controller.isUpdating.value
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(
+                    '${item.quantity}',
+                    style: AppTheme.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
           ),
-          // Increment button
+          // Increment button - uses cart item id
           _buildQuantityButton(
             icon: Icons.add,
-            onPressed: () => controller.incrementQuantity(item.productId),
-            enabled: item.quantity < item.stock,
+            onPressed: controller.isUpdating.value 
+                ? null 
+                : () => controller.incrementQuantity(item.id),
+            enabled: !controller.isUpdating.value && item.quantity < item.stock,
           ),
         ],
-      ),
+      )),
     );
   }
 
   Widget _buildQuantityButton({
     required IconData icon,
-    required VoidCallback onPressed,
+    required VoidCallback? onPressed,
     required bool enabled,
   }) {
     return InkWell(
@@ -334,14 +399,14 @@ class CartView extends GetView<CartController> {
           // Subtotal
           _buildPriceRow(
             'Subtotal (${controller.uniqueItemsCount} items)',
-            '\$${controller.subtotal.toStringAsFixed(2)}',
+            '₹${controller.subtotal.toStringAsFixed(2)}',
           ),
           const SizedBox(height: AppTheme.spacingSM),
           // Discount (if any)
           if (controller.totalDiscount > 0) ...[
             _buildPriceRow(
               'Discount',
-              '-\$${controller.totalDiscount.toStringAsFixed(2)}',
+              '-₹${controller.totalDiscount.toStringAsFixed(2)}',
               valueColor: AppTheme.successColor,
             ),
             const SizedBox(height: AppTheme.spacingSM),
@@ -349,7 +414,7 @@ class CartView extends GetView<CartController> {
           // Tax
           _buildPriceRow(
             'Tax (${(controller.taxRate * 100).toInt()}%)',
-            '\$${controller.taxAmount.toStringAsFixed(2)}',
+            '₹${controller.taxAmount.toStringAsFixed(2)}',
           ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: AppTheme.spacingMD),
@@ -358,7 +423,7 @@ class CartView extends GetView<CartController> {
           // Total
           _buildPriceRow(
             'Total',
-            '\$${controller.total.toStringAsFixed(2)}',
+            '₹${controller.total.toStringAsFixed(2)}',
             isBold: true,
             labelStyle: AppTheme.headingSmall,
             valueStyle: AppTheme.headingMedium.copyWith(
@@ -420,14 +485,30 @@ class CartView extends GetView<CartController> {
             ),
           ],
         ),
-        child: Obx(() => DynamicButton(
-          text: 'Checkout (\$${controller.total.toStringAsFixed(2)})',
-          onPressed: controller.isCheckingOut.value ? null : controller.checkout,
-          isLoading: controller.isCheckingOut.value,
-          isFullWidth: true,
-          size: ButtonSize.large,
-          leadingIcon: Icons.shopping_cart_checkout,
-        )),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Generate Invoice button
+            Obx(() => DynamicButton(
+              text: 'Generate Invoice',
+              onPressed: controller.isGeneratingInvoice.value ? null : controller.generateInvoice,
+              isLoading: controller.isGeneratingInvoice.value,
+              isFullWidth: true,
+              variant: ButtonVariant.outlined,
+              leadingIcon: Icons.receipt_long_outlined,
+            )),
+            const SizedBox(height: AppTheme.spacingSM),
+            // Checkout button
+            Obx(() => DynamicButton(
+              text: 'Checkout (₹${controller.total.toStringAsFixed(2)})',
+              onPressed: controller.isCheckingOut.value ? null : controller.checkout,
+              isLoading: controller.isCheckingOut.value,
+              isFullWidth: true,
+              size: ButtonSize.large,
+              leadingIcon: Icons.shopping_cart_checkout,
+            )),
+          ],
+        ),
       ),
     );
   }
@@ -436,7 +517,7 @@ class CartView extends GetView<CartController> {
   // Dialogs
   // ─────────────────────────────────────────────────────────────────────────────
 
-  Future<bool?> _showRemoveItemDialog(BuildContext context, CartItem item) {
+  Future<bool?> _showRemoveItemDialog(BuildContext context, Item item) {
     return Get.dialog<bool>(
       AlertDialog(
         title: const Text('Remove Item'),
@@ -447,7 +528,11 @@ class CartView extends GetView<CartController> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () => Get.back(result: true),
+            onPressed: () {
+              Get.back(result: true);
+              // Use cart item id for delete
+              controller.deleteCartItem(item.id);
+            },
             style: TextButton.styleFrom(
               foregroundColor: AppTheme.errorColor,
             ),

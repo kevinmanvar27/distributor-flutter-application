@@ -66,6 +66,7 @@ dependencies:
   form_builder_validators: ^11.2.0
   intl_phone_field: ^3.2.0
   dropdown_search: ^6.0.2
+  google_fonts: ^6.2.1
 
   # Utilities
   intl: ^0.20.2
@@ -96,6 +97,11 @@ dependencies:
   # Webview
   webview_flutter: ^4.10.0
 
+  # PDF Generation
+  pdf: ^3.10.8
+  printing: ^5.13.2
+  razorpay_flutter: ^1.3.7
+  file_saver: ^0.2.9
   # Firebase (optional - uncomment if needed)
   # firebase_core: ^3.8.0
   # firebase_messaging: ^15.0.1

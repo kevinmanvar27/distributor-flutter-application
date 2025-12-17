@@ -10,13 +10,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/services/api_service.dart';
 import '../../core/theme/app_theme.dart';
-import '../../models/product.dart';
+import '../../models/category.dart'; // Using unified ProductItem
 import '../cart/cart_controller.dart';
 
 class ProductDetailController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
   
-  final Rx<Product?> product = Rx<Product?>(null);
+  final Rx<ProductItem?> product = Rx<ProductItem?>(null);
   final RxBool isLoading = false.obs;
   final RxBool hasError = false.obs;
   final RxString errorMessage = ''.obs;
@@ -31,8 +31,9 @@ class ProductDetailController extends GetxController {
     
     // Get product from arguments or load from API
     final args = Get.arguments;
-    if (args is Product) {
+    if (args is ProductItem) {
       product.value = args;
+      _printProductImageUrl();
     } else {
       // Load product from API using route parameter
       final productId = Get.parameters['id'];
@@ -42,6 +43,15 @@ class ProductDetailController extends GetxController {
     }
   }
   
+  /// Print product image URL to console
+  void _printProductImageUrl() {
+    if (product.value != null) {
+      debugPrint('🖼️ ===== PRODUCT DETAIL IMAGE URL =====');
+      debugPrint('🖼️ Product "${product.value!.name}" - Image: ${product.value!.imageUrl ?? "null"}');
+      debugPrint('🖼️ =====================================');
+    }
+  }
+
   /// Load product from API
   Future<void> loadProduct(String productId) async {
     try {
@@ -54,7 +64,8 @@ class ProductDetailController extends GetxController {
       if (response.statusCode == 200 && response.data != null) {
         final data = response.data;
         final productData = data['data'] ?? data['product'] ?? data;
-        product.value = Product.fromJson(productData);
+        product.value = ProductItem.fromJson(productData);
+        _printProductImageUrl();
       } else {
         hasError.value = true;
         errorMessage.value = 'Product not found';
@@ -70,7 +81,7 @@ class ProductDetailController extends GetxController {
   /// Increment quantity
   void incrementQuantity() {
     final p = product.value;
-    if (p != null && quantity.value < p.stock) {
+    if (p != null && quantity.value < p.stockQuantity) {
       quantity.value++;
     }
   }
@@ -86,7 +97,7 @@ class ProductDetailController extends GetxController {
   void setQuantity(int value) {
     final p = product.value;
     if (p != null) {
-      if (value >= 1 && value <= p.stock) {
+      if (value >= 1 && value <= p.stockQuantity) {
         quantity.value = value;
       }
     }
@@ -95,7 +106,7 @@ class ProductDetailController extends GetxController {
   /// Add to cart
   Future<void> addToCart() async {
     final p = product.value;
-    if (p == null || !p.inStock) return;
+    if (p == null || p.stockQuantity <= 0) return;
     
     try {
       isAddingToCart.value = true;

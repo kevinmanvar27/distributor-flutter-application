@@ -9,6 +9,8 @@
 // - Durations for animations
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../models/Setting.dart' as settings_model;
 
 class AppTheme {
   // Private constructor to prevent instantiation
@@ -573,4 +575,115 @@ class AppTheme {
       onError: textOnPrimary,
     ),
   );
+
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Dynamic Theme Generation
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Create theme from API settings
+  static ThemeData createThemeFromSettings(settings_model.Data settings) {
+    // Parse colors
+    final primary = _hexToColor(settings.primaryColor) ?? primaryColor;
+    final secondary = _hexToColor(settings.secondaryColor) ?? secondaryColor;
+    final background = _hexToColor(settings.backgroundColor) ?? backgroundColor;
+    final text = _hexToColor(settings.textColor) ?? textPrimary;
+    final surface = background == Colors.white ? Colors.white : Colors.white; // Simplified
+
+    // Determine brightness based on background luminance or explicit flag
+    final isDark = settings.darkModeEnabled;
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: brightness,
+      primaryColor: primary,
+      scaffoldBackgroundColor: background,
+      colorScheme: ColorScheme(
+        brightness: brightness,
+        primary: primary,
+        onPrimary: Colors.white,
+        secondary: secondary,
+        onSecondary: Colors.white,
+        error: errorColor,
+        onError: Colors.white,
+        surface: surface,
+        onSurface: text,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: _hexToColor(settings.headerColor) ?? surface,
+        foregroundColor: text,
+        elevation: 0,
+        centerTitle: true,
+        titleTextStyle: titleLarge.copyWith(color: text),
+      ),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: _hexToColor(settings.footerColor) ?? surface,
+        selectedItemColor: primary,
+        unselectedItemColor: textTertiary,
+      ),
+      textTheme: _buildDynamicTextTheme(
+        baseTheme: isDark ? ThemeData.dark().textTheme : ThemeData.light().textTheme,
+        primaryFont: settings.primaryFont,
+        secondaryFont: settings.secondaryFont,
+        color: text,
+      ),
+      // ... Copy other defaults
+    );
+  }
+
+  /// Helper to build text theme with dynamic fonts
+  static TextTheme _buildDynamicTextTheme({
+    required TextTheme baseTheme,
+    required String primaryFont,
+    required String secondaryFont,
+    required Color color,
+  }) {
+    // If secondary font is not provided, use primary font for everything
+    final bodyFont = (secondaryFont.isNotEmpty) ? secondaryFont : primaryFont;
+    final headFont = primaryFont.isNotEmpty ? primaryFont : 'Inter'; // Default fallback
+    
+    TextStyle getStyle(String font, TextStyle? base) {
+      final style = base?.copyWith(color: color) ?? TextStyle(color: color);
+      try {
+        return GoogleFonts.getFont(font, textStyle: style);
+      } catch (_) {
+        return style; // Fallback if font name is invalid or network fails
+      }
+    }
+
+    return baseTheme.copyWith(
+      displayLarge: getStyle(headFont, baseTheme.displayLarge),
+      displayMedium: getStyle(headFont, baseTheme.displayMedium),
+      displaySmall: getStyle(headFont, baseTheme.displaySmall),
+      headlineLarge: getStyle(headFont, baseTheme.headlineLarge),
+      headlineMedium: getStyle(headFont, baseTheme.headlineMedium),
+      headlineSmall: getStyle(headFont, baseTheme.headlineSmall),
+      titleLarge: getStyle(headFont, baseTheme.titleLarge),
+      titleMedium: getStyle(headFont, baseTheme.titleMedium),
+      titleSmall: getStyle(headFont, baseTheme.titleSmall),
+      bodyLarge: getStyle(bodyFont, baseTheme.bodyLarge),
+      bodyMedium: getStyle(bodyFont, baseTheme.bodyMedium),
+      bodySmall: getStyle(bodyFont, baseTheme.bodySmall),
+      labelLarge: getStyle(bodyFont, baseTheme.labelLarge),
+      labelMedium: getStyle(bodyFont, baseTheme.labelMedium),
+      labelSmall: getStyle(bodyFont, baseTheme.labelSmall),
+    );
+  }
+
+  /// Helper to convert hex string to Color
+  /// Support formats: #RRGGBB, #AARRGGBB, RRGGBB
+  static Color? _hexToColor(String? hexString) {
+    if (hexString == null || hexString.isEmpty) return null;
+    
+    final buffer = StringBuffer();
+    if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');
+    buffer.write(hexString.replaceFirst('#', ''));
+    
+    try {
+      return Color(int.parse(buffer.toString(), radix: 16));
+    } catch (_) {
+      return null;
+    }
+  }
 }

@@ -268,17 +268,24 @@ class ProductsView extends GetView<ProductsController> {
             final product = controller.products[index];
             final wishlistController = Get.find<WishlistController>();
             return Obx(() => ProductCard(
-              product: product,
+              productId: product.id,
+              name: product.name,
+              imageUrl: product.imageUrl,
+              mrp: product.mrpValue,
+              sellingPrice: product.sellingPriceValue,
+              inStock: product.inStock,
+              discountPercent: product.discountPercent,
+              description: product.description,
               heroTagPrefix: 'products',
               onTap: () => controller.goToProductDetail(product),
               onAddToCart: () {
                 final cartController = Get.find<CartController>();
-                cartController.addToCart(product);
+                cartController.addToCart(product.toProductItem());
               },
               // Wishlist functionality
               showFavorite: true,
               isFavorite: wishlistController.isInWishlist(product.id),
-              onFavorite: () => wishlistController.toggleWishlist(product),
+              onFavorite: () => wishlistController.toggleWishlist(product.toProductItem()),
             ));
           },
         )),

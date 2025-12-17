@@ -1,15 +1,14 @@
 // 
-// Products screen for a specific subcategory
-// Shows products grid with infinite scroll pagination
+// Subcategory Products Screen
+// Shows products from /categories/{id} API
+// Uses Product class from catagories.dart
 
+import 'package:distributor_app/models/catagories.dart' hide Image;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/dynamic_appbar.dart';
-import '../../core/widgets/product_card.dart';
-import '../cart/cart_controller.dart';
-import '../wishlist/wishlist_controller.dart';
-import 'subcategories_controller.dart';
+import 'subcategory_products_controller.dart';
 
 class SubcategoryProductsView extends GetView<SubcategoryProductsController> {
   const SubcategoryProductsView({super.key});
@@ -18,22 +17,29 @@ class SubcategoryProductsView extends GetView<SubcategoryProductsController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: DynamicAppBar(
-        title: controller.subcategory.value?.name ?? 'Products',
+        title: controller.displayTitle,
       ),
       body: Obx(() {
-        if (controller.isLoading.value && controller.products.isEmpty) {
+        // Loading state
+        if (controller.isLoading.value && !controller.hasContent) {
           return const Center(child: CircularProgressIndicator());
         }
         
-        if (controller.hasError.value && controller.products.isEmpty) {
+        // Error state
+        if (controller.hasError.value && !controller.hasContent) {
           return _buildErrorState();
         }
         
-        if (controller.products.isEmpty) {
+        // Empty state
+        if (!controller.hasContent) {
           return _buildEmptyState();
         }
         
-        return _buildProductsGrid();
+        // Show products grid
+        return RefreshIndicator(
+          onRefresh: controller.refresh,
+          child: _buildProductsGrid(),
+        );
       }),
     );
   }
@@ -52,7 +58,7 @@ class SubcategoryProductsView extends GetView<SubcategoryProductsController> {
             ),
             const SizedBox(height: AppTheme.spacingMd),
             Text(
-              'Failed to load products',
+              'Something went wrong',
               style: AppTheme.titleMedium,
             ),
             const SizedBox(height: AppTheme.spacingSm),
@@ -65,7 +71,7 @@ class SubcategoryProductsView extends GetView<SubcategoryProductsController> {
             )),
             const SizedBox(height: AppTheme.spacingLg),
             ElevatedButton.icon(
-              onPressed: controller.loadProducts,
+              onPressed: controller.refresh,
               icon: const Icon(Icons.refresh),
               label: const Text('Try Again'),
             ),
@@ -94,7 +100,7 @@ class SubcategoryProductsView extends GetView<SubcategoryProductsController> {
             ),
             const SizedBox(height: AppTheme.spacingSm),
             Text(
-              'No products found in this subcategory',
+              'No products found in this category',
               style: AppTheme.bodyMedium.copyWith(
                 color: AppTheme.textSecondary,
               ),
@@ -102,9 +108,9 @@ class SubcategoryProductsView extends GetView<SubcategoryProductsController> {
             ),
             const SizedBox(height: AppTheme.spacingLg),
             ElevatedButton.icon(
-              onPressed: () => Get.back(),
-              icon: const Icon(Icons.arrow_back),
-              label: const Text('Go Back'),
+              onPressed: controller.refresh,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Refresh'),
             ),
           ],
         ),
@@ -112,57 +118,151 @@ class SubcategoryProductsView extends GetView<SubcategoryProductsController> {
     );
   }
   
+  /// Build grid of products
   Widget _buildProductsGrid() {
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        if (notification is ScrollEndNotification) {
-          final metrics = notification.metrics;
-          if (metrics.pixels >= metrics.maxScrollExtent - 200) {
-            controller.loadMoreProducts();
-          }
-        }
-        return false;
+    return GridView.builder(
+      padding: const EdgeInsets.all(AppTheme.spacingMd),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.7,
+        crossAxisSpacing: AppTheme.spacingMd,
+        mainAxisSpacing: AppTheme.spacingMd,
+      ),
+      itemCount: controller.products.length,
+      itemBuilder: (context, index) {
+        final product = controller.products[index];
+        return _buildProductItem(product);
       },
-      child: RefreshIndicator(
-        onRefresh: controller.refreshProducts,
-        child: Obx(() => GridView.builder(
-          padding: const EdgeInsets.all(AppTheme.spacingMd),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.65,
-            crossAxisSpacing: AppTheme.spacingMd,
-            mainAxisSpacing: AppTheme.spacingMd,
-          ),
-          itemCount: controller.products.length + (controller.hasMore.value ? 1 : 0),
-          itemBuilder: (context, index) {
-            // Loading indicator at the end
-            if (index >= controller.products.length) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(AppTheme.spacingMd),
-                  child: CircularProgressIndicator(),
+    );
+  }
+  
+  /// Build single product item
+  Widget _buildProductItem(Product product) {
+    return GestureDetector(
+      onTap: () => controller.onProductTap(product),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          border: Border.all(color: AppTheme.borderColor),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product image
+            Expanded(
+              flex: 3,
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceColor,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(AppTheme.radiusMd),
+                  ),
                 ),
-              );
-            }
-            
-            final product = controller.products[index];
-            final wishlistController = Get.find<WishlistController>();
-            
-            return Obx(() => ProductCard(
-              product: product,
-              heroTagPrefix: 'subcategory_products',
-              onTap: () => controller.goToProductDetail(product),
-              onAddToCart: () {
-                final cartController = Get.find<CartController>();
-                cartController.addToCart(product);
-              },
-              // Wishlist functionality
-              showFavorite: true,
-              isFavorite: wishlistController.isInWishlist(product.id),
-              onFavorite: () => wishlistController.toggleWishlist(product),
-            ));
-          },
-        )),
+                child: product.imageUrl != null
+                    ? ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(AppTheme.radiusMd),
+                        ),
+                        child: Image.network(
+                          product.imageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _buildImagePlaceholder(),
+                        ),
+                      )
+                    : _buildImagePlaceholder(),
+              ),
+            ),
+            // Product info
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(AppTheme.spacingSm),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Product name
+                    Flexible(
+                      child: Text(
+                        product.name,
+                        style: AppTheme.bodySmall.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    // Price row with discount badge
+                    Row(
+                      children: [
+                        // Selling price
+                        Text(
+                          '₹${product.sellingPriceValue.toStringAsFixed(0)}',
+                          style: AppTheme.titleSmall.copyWith(
+                            color: AppTheme.primaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: AppTheme.spacingXs),
+                        // MRP (strikethrough)
+                        if (product.mrpValue > product.sellingPriceValue)
+                          Text(
+                            '₹${product.mrpValue.toStringAsFixed(0)}',
+                            style: AppTheme.bodySmall.copyWith(
+                              color: AppTheme.textSecondary,
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                        // Discount badge inline
+                        if (product.discountPercent > 0) ...[
+                          const SizedBox(width: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 1,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.successColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              '${product.discountPercent.toStringAsFixed(0)}%',
+                              style: AppTheme.bodySmall.copyWith(
+                                color: AppTheme.successColor,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildImagePlaceholder() {
+    return Center(
+      child: Icon(
+        Icons.inventory_2_outlined,
+        color: AppTheme.textSecondary.withValues(alpha: 0.3),
+        size: 40,
       ),
     );
   }

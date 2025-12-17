@@ -1,188 +1,216 @@
 // Cart Item Model
 // 
-// Represents an item in the shopping cart.
-// Contains product reference and quantity.
+// Models for cart items with products
 
-import '../core/utils/image_utils.dart';
-import 'product.dart';
+import 'category.dart';
 
 class CartItem {
-  final int id;
-  final int productId;
-  final int quantity;
-  final double price;
-  final double? salePrice;
-  final double? originalPrice;
-  final int stock;
-  final String? _name;
-  final String? _imageUrl;
-  final Product? product;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-  
+  bool success;
+  CartItemData data;
+  String message;
+
   CartItem({
-    this.id = 0,
+    required this.success,
+    required this.data,
+    required this.message,
+  });
+
+  factory CartItem.fromJson(Map<String, dynamic> json) {
+    return CartItem(
+      success: json['success'] ?? false,
+      data: CartItemData.fromJson(json['data'] ?? {}),
+      message: json['message'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'success': success,
+      'data': data.toJson(),
+      'message': message,
+    };
+  }
+}
+
+class CartItemData {
+  List<Item> items;
+  String total;
+  int count;
+
+  CartItemData({
+    required this.items,
+    required this.total,
+    required this.count,
+  });
+
+  factory CartItemData.fromJson(Map<String, dynamic> json) {
+    return CartItemData(
+      items: (json['items'] as List<dynamic>?)
+              ?.map((e) => Item.fromJson(e))
+              .toList() ??
+          [],
+      total: json['total']?.toString() ?? '0',
+      count: json['count'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'items': items.map((e) => e.toJson()).toList(),
+      'total': total,
+      'count': count,
+    };
+  }
+
+  /// Get total as double
+  double get totalValue => double.tryParse(total) ?? 0;
+}
+
+class Item {
+  int id;
+  int userId;
+  dynamic sessionId;
+  int productId;
+  int quantity;
+  String price;
+  DateTime createdAt;
+  DateTime updatedAt;
+  ProductItem product;
+
+  Item({
+    required this.id,
+    required this.userId,
+    required this.sessionId,
     required this.productId,
     required this.quantity,
     required this.price,
-    this.salePrice,
-    this.originalPrice,
-    this.stock = 0,
-    String? name,
-    String? imageUrl,
-    this.product,
-    this.createdAt,
-    this.updatedAt,
-  }) : _name = name,
-       _imageUrl = imageUrl;
-  
-  /// Create CartItem from JSON
-  factory CartItem.fromJson(Map<String, dynamic> json) {
-    return CartItem(
+    required this.createdAt,
+    required this.updatedAt,
+    required this.product,
+  });
+
+  factory Item.fromJson(Map<String, dynamic> json) {
+    // Try to parse product data - handle both nested and flat structures
+    ProductItem product;
+    try {
+      if (json['product'] is Map<String, dynamic>) {
+        product = ProductItem.fromJson(json['product'] as Map<String, dynamic>);
+      } else {
+        // If no nested product, create from flat data
+        product = ProductItem(
+          id: json['product_id'] ?? json['productId'] ?? 0,
+          name: json['product_name'] ?? json['productName'] ?? 'Unknown Product',
+          slug: json['slug'] ?? '',
+          description: json['description'] ?? '',
+          mrp: json['mrp']?.toString() ?? json['original_price']?.toString() ?? json['price']?.toString() ?? '0',
+          sellingPrice: json['selling_price']?.toString() ?? json['price']?.toString() ?? '0',
+          inStock: json['in_stock'] ?? json['inStock'] ?? true,
+          stockQuantity: json['stock_quantity'] ?? json['stockQuantity'] ?? 999,
+          status: json['status'] ?? 'active',
+          productGallery: [],
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          discountedPrice: json['discounted_price']?.toString() ?? json['price']?.toString() ?? '0',
+        );
+      }
+    } catch (e) {
+      // Fallback to minimal product
+      product = ProductItem(
+        id: json['product_id'] ?? json['productId'] ?? 0,
+        name: json['product_name'] ?? json['productName'] ?? 'Unknown Product',
+        slug: '',
+        description: '',
+        mrp: json['price']?.toString() ?? '0',
+        sellingPrice: json['price']?.toString() ?? '0',
+        inStock: true,
+        stockQuantity: 999,
+        status: 'active',
+        productGallery: [],
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        discountedPrice: json['price']?.toString() ?? '0',
+      );
+    }
+
+    return Item(
       id: json['id'] ?? 0,
-      productId: json['product_id'] ?? json['product']?['id'] ?? 0,
+      userId: json['user_id'] ?? 0,
+      sessionId: json['session_id'],
+      productId: json['product_id'] ?? json['productId'] ?? product.id,
       quantity: json['quantity'] ?? 1,
-      price: _parseDouble(json['price'] ?? json['product']?['price']),
-      salePrice: json['sale_price'] != null 
-          ? _parseDouble(json['sale_price']) 
-          : (json['product']?['sale_price'] != null 
-              ? _parseDouble(json['product']['sale_price']) 
-              : null),
-      originalPrice: json['original_price'] != null 
-          ? _parseDouble(json['original_price']) 
-          : null,
-      stock: json['stock'] ?? json['product']?['stock'] ?? 0,
-      name: json['name'] ?? json['product']?['name'],
-      imageUrl: json['image_url'] ?? json['product']?['image'],
-      product: json['product'] != null 
-          ? Product.fromJson(json['product']) 
-          : null,
-      createdAt: json['created_at'] != null 
-          ? DateTime.tryParse(json['created_at']) 
-          : null,
-      updatedAt: json['updated_at'] != null 
-          ? DateTime.tryParse(json['updated_at']) 
-          : null,
+      price: json['price']?.toString() ?? product.sellingPrice,
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updated_at']?.toString() ?? '') ?? DateTime.now(),
+      product: product,
     );
   }
-  
-  /// Parse double from various types
-  static double _parseDouble(dynamic value) {
-    if (value == null) return 0.0;
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    if (value is String) return double.tryParse(value) ?? 0.0;
-    return 0.0;
-  }
-  
-  /// Convert CartItem to JSON
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'user_id': userId,
+      'session_id': sessionId,
       'product_id': productId,
       'quantity': quantity,
       'price': price,
-      'sale_price': salePrice,
-      'original_price': originalPrice,
-      'stock': stock,
-      'name': _name,
-      'image_url': _imageUrl,
-      // Product is not serialized to avoid circular references
-      'created_at': createdAt?.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
+      'product': product.toJson(),
     };
   }
+
+  /// Get price as double
+  double get priceValue => double.tryParse(price) ?? 0;
+
+  /// Get item subtotal (total price for this cart item)
+  double get subtotal => priceValue * quantity;
   
-  /// Get unit price (sale price if available)
-  double get unitPrice => salePrice ?? price;
-  
-  /// Get total price for this cart item
-  double get totalPrice => unitPrice * quantity;
-  
-  /// Get formatted unit price
-  String get formattedUnitPrice => '\$${unitPrice.toStringAsFixed(2)}';
-  
-  /// Get formatted total price
-  String get formattedTotalPrice => '\$${totalPrice.toStringAsFixed(2)}';
+  /// Alias for subtotal (for backward compatibility)
+  double get totalPrice => subtotal;
   
   /// Get product name
-  String get productName => _name ?? product?.name ?? 'Unknown Product';
+  String get name => product.name;
   
-  /// Alias for productName (convenience getter)
-  String get name => productName;
+  /// Get product image URL
+  String? get imageUrl => product.imageUrl;
   
-  /// Get product image with storage path prepended
-  String? get productImage {
-    final rawPath = _imageUrl ?? product?.imageUrl;
-    return buildImageUrl(rawPath);
-  }
+  /// Get stock quantity from product
+  int get stock => product.stockQuantity;
   
-  /// Alias for productImage (convenience getter)
-  String? get imageUrl => productImage;
+  /// Check if item has discount
+  bool get hasDiscount => product.hasDiscount;
   
-  /// Check if product is on sale
-  bool get isOnSale => salePrice != null && salePrice! < price;
+  /// Get original price (MRP)
+  double get displayOriginalPrice => product.mrpValue;
   
-  /// Alias for isOnSale (convenience getter)
-  bool get hasDiscount => isOnSale;
-  
-  /// Get the original price (non-nullable, falls back to price)
-  double get displayOriginalPrice => originalPrice ?? price;
-  
-  /// Get discount percentage
-  int get discountPercentage {
-    if (!isOnSale) return 0;
-    return (((price - salePrice!) / price) * 100).round();
-  }
-  
-  /// Get discount amount for this cart item
+  /// Get discount amount
   double get discountAmount {
-    if (!isOnSale) return 0.0;
-    return (price - salePrice!) * quantity;
+    if (!hasDiscount) return 0;
+    return (displayOriginalPrice - priceValue) * quantity;
   }
   
-  /// Create a copy with updated fields
-  CartItem copyWith({
+  /// Create a copy with updated values
+  Item copyWith({
     int? id,
+    int? userId,
+    dynamic sessionId,
     int? productId,
     int? quantity,
-    double? price,
-    double? salePrice,
-    double? originalPrice,
-    int? stock,
-    String? name,
-    String? imageUrl,
-    Product? product,
+    String? price,
     DateTime? createdAt,
     DateTime? updatedAt,
+    ProductItem? product,
   }) {
-    return CartItem(
+    return Item(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
+      sessionId: sessionId ?? this.sessionId,
       productId: productId ?? this.productId,
       quantity: quantity ?? this.quantity,
       price: price ?? this.price,
-      salePrice: salePrice ?? this.salePrice,
-      originalPrice: originalPrice ?? this.originalPrice,
-      stock: stock ?? this.stock,
-      name: name ?? _name,
-      imageUrl: imageUrl ?? _imageUrl,
-      product: product ?? this.product,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      product: product ?? this.product,
     );
   }
-  
-  @override
-  String toString() {
-    return 'CartItem(id: $id, productId: $productId, quantity: $quantity, total: $totalPrice)';
-  }
-  
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is CartItem && other.id == id;
-  }
-  
-  @override
-  int get hashCode => id.hashCode;
 }

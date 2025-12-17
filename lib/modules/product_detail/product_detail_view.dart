@@ -119,7 +119,7 @@ class ProductDetailView extends GetView<ProductDetailController> {
                     Row(
                       children: [
                         Text(
-                          product.formattedSalePrice,
+                          product.mrp,
                           style: AppTheme.headlineMedium.copyWith(
                             color: AppTheme.primaryColor,
                             fontWeight: FontWeight.bold,
@@ -128,7 +128,7 @@ class ProductDetailView extends GetView<ProductDetailController> {
                         if (product.hasDiscount) ...[
                           const SizedBox(width: AppTheme.spacingSm),
                           Text(
-                            product.formattedPrice,
+                            product.mrp,
                             style: AppTheme.titleMedium.copyWith(
                               color: AppTheme.textSecondary,
                               decoration: TextDecoration.lineThrough,
@@ -145,7 +145,7 @@ class ProductDetailView extends GetView<ProductDetailController> {
                               borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                             ),
                             child: Text(
-                              '-${product.discountPercentage}%',
+                              '-${product.discountedPrice}%',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 12,
@@ -169,7 +169,7 @@ class ProductDetailView extends GetView<ProductDetailController> {
                         const SizedBox(width: AppTheme.spacingXs),
                         Text(
                           product.inStock
-                              ? 'In Stock (${product.stock} available)'
+                              ? 'In Stock (${product.inStock} available)'
                               : 'Out of Stock',
                           style: AppTheme.bodyMedium.copyWith(
                             color: product.inStock ? AppTheme.successColor : AppTheme.errorColor,
@@ -329,7 +329,7 @@ class ProductDetailView extends GetView<ProductDetailController> {
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: controller.product.value != null &&
-                    controller.quantity.value < controller.product.value!.stock
+                    controller.quantity.value < controller.product.value!.stockQuantity
                 ? controller.incrementQuantity
                 : null,
           ),

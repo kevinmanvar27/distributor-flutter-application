@@ -1,9 +1,8 @@
-// Product Models
-//
-// Models for /products API response with pagination support
-// Includes fromJson factories and computed getters
+// Product Detail Model
+// 
+// Full product details for product detail page
 
-import '../core/utils/image_utils.dart';
+import 'category.dart'; // Use unified image model
 
 class Products {
   bool success;
@@ -23,72 +22,17 @@ class Products {
       message: json['message'] ?? '',
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'success': success,
+      'data': data.toJson(),
+      'message': message,
+    };
+  }
 }
 
 class ProductsData {
-  int currentPage;
-  List<Product> data;
-  String firstPageUrl;
-  int from;
-  int lastPage;
-  String lastPageUrl;
-  List<Link> links;
-  String? nextPageUrl;
-  String path;
-  int perPage;
-  String? prevPageUrl;
-  int to;
-  int total;
-
-  ProductsData({
-    required this.currentPage,
-    required this.data,
-    required this.firstPageUrl,
-    required this.from,
-    required this.lastPage,
-    required this.lastPageUrl,
-    required this.links,
-    this.nextPageUrl,
-    required this.path,
-    required this.perPage,
-    this.prevPageUrl,
-    required this.to,
-    required this.total,
-  });
-
-  factory ProductsData.fromJson(Map<String, dynamic> json) {
-    return ProductsData(
-      currentPage: json['current_page'] ?? 1,
-      data: (json['data'] as List<dynamic>?)
-          ?.map((e) => Product.fromJson(e))
-          .toList() ?? [],
-      firstPageUrl: json['first_page_url'] ?? '',
-      from: json['from'] ?? 0,
-      lastPage: json['last_page'] ?? 1,
-      lastPageUrl: json['last_page_url'] ?? '',
-      links: (json['links'] as List<dynamic>?)
-          ?.map((e) => Link.fromJson(e))
-          .toList() ?? [],
-      nextPageUrl: json['next_page_url'],
-      path: json['path'] ?? '',
-      perPage: json['per_page'] ?? 10,
-      prevPageUrl: json['prev_page_url'],
-      to: json['to'] ?? 0,
-      total: json['total'] ?? 0,
-    );
-  }
-
-  /// Check if there are more pages
-  bool get hasNextPage => nextPageUrl != null;
-  
-  /// Check if this is the first page
-  bool get isFirstPage => currentPage == 1;
-  
-  /// Check if this is the last page
-  bool get isLastPage => currentPage == lastPage;
-}
-
-class Product {
   int id;
   String name;
   String slug;
@@ -98,17 +42,22 @@ class Product {
   bool inStock;
   int stockQuantity;
   String status;
-  int? mainPhotoId;
+  int mainPhotoId;
   List<int> productGallery;
   dynamic productCategories;
-  String? metaTitle;
-  String? metaDescription;
-  String? metaKeywords;
+  String metaTitle;
+  String metaDescription;
+  String metaKeywords;
   DateTime createdAt;
   DateTime updatedAt;
-  MainPhoto? mainPhoto;
+  ProductImage mainPhoto; // Using unified ProductImage from category.dart
+  List<ProductImage> galleryPhotos; // Using unified ProductImage
+  String discountedPrice;
+  bool isInWishlist;
+  StockStatus stockStatus;
+  List<dynamic> relatedProducts;
 
-  Product({
+  ProductsData({
     required this.id,
     required this.name,
     required this.slug,
@@ -118,18 +67,23 @@ class Product {
     required this.inStock,
     required this.stockQuantity,
     required this.status,
-    this.mainPhotoId,
+    required this.mainPhotoId,
     required this.productGallery,
-    this.productCategories,
-    this.metaTitle,
-    this.metaDescription,
-    this.metaKeywords,
+    required this.productCategories,
+    required this.metaTitle,
+    required this.metaDescription,
+    required this.metaKeywords,
     required this.createdAt,
     required this.updatedAt,
-    this.mainPhoto,
+    required this.mainPhoto,
+    required this.galleryPhotos,
+    required this.discountedPrice,
+    required this.isInWishlist,
+    required this.stockStatus,
+    required this.relatedProducts,
   });
 
-  factory Product.fromJson(Map<String, dynamic> json) {
+  factory ProductsData.fromJson(Map<String, dynamic> json) {
     // Parse product gallery
     List<int> gallery = [];
     if (json['product_gallery'] is List) {
@@ -138,7 +92,7 @@ class Product {
           .toList();
     }
 
-    return Product(
+    return ProductsData(
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
       slug: json['slug'] ?? '',
@@ -148,165 +102,97 @@ class Product {
       inStock: json['in_stock'] ?? true,
       stockQuantity: json['stock_quantity'] ?? 0,
       status: json['status'] ?? '',
-      mainPhotoId: json['main_photo_id'],
+      mainPhotoId: json['main_photo_id'] ?? 0,
       productGallery: gallery,
       productCategories: json['product_categories'],
-      metaTitle: json['meta_title'],
-      metaDescription: json['meta_description'],
-      metaKeywords: json['meta_keywords'],
+      metaTitle: json['meta_title'] ?? '',
+      metaDescription: json['meta_description'] ?? '',
+      metaKeywords: json['meta_keywords'] ?? '',
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
       updatedAt: DateTime.tryParse(json['updated_at'] ?? '') ?? DateTime.now(),
-      mainPhoto: json['main_photo'] != null 
-          ? MainPhoto.fromJson(json['main_photo']) 
-          : null,
+      mainPhoto: ProductImage.fromJson(json['main_photo'] ?? {}),
+      galleryPhotos: (json['gallery_photos'] as List<dynamic>?)
+              ?.map((e) => ProductImage.fromJson(e))
+              .toList() ??
+          [],
+      discountedPrice: json['discounted_price']?.toString() ?? '0',
+      isInWishlist: json['is_in_wishlist'] ?? false,
+      stockStatus: StockStatus.fromJson(json['stock_status'] ?? {}),
+      relatedProducts: json['related_products'] ?? [],
     );
   }
 
-  /// Get full image URL using centralized helper
-  String? get imageUrl => buildImageUrl(mainPhoto?.path);
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'slug': slug,
+      'description': description,
+      'mrp': mrp,
+      'selling_price': sellingPrice,
+      'in_stock': inStock,
+      'stock_quantity': stockQuantity,
+      'status': status,
+      'main_photo_id': mainPhotoId,
+      'product_gallery': productGallery,
+      'product_categories': productCategories,
+      'meta_title': metaTitle,
+      'meta_description': metaDescription,
+      'meta_keywords': metaKeywords,
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
+      'main_photo': mainPhoto.toJson(),
+      'gallery_photos': galleryPhotos.map((e) => e.toJson()).toList(),
+      'discounted_price': discountedPrice,
+      'is_in_wishlist': isInWishlist,
+      'stock_status': stockStatus.toJson(),
+      'related_products': relatedProducts,
+    };
+  }
 
   /// Get MRP as double
   double get mrpValue => double.tryParse(mrp) ?? 0;
 
-  /// Alias for mrpValue (backwards compatibility)
-  double get price => mrpValue;
-
   /// Get selling price as double
   double get sellingPriceValue => double.tryParse(sellingPrice) ?? 0;
 
-  /// Alias for sellingPriceValue (backwards compatibility)
-  double get salePrice => sellingPriceValue;
-
-  /// Get display price (selling price)
-  double get displayPrice => sellingPriceValue;
+  /// Get discounted price as double
+  double get discountedPriceValue => double.tryParse(discountedPrice) ?? 0;
 
   /// Check if product has discount
   bool get hasDiscount => sellingPriceValue < mrpValue;
-
-  /// Alias for hasDiscount
-  bool get isOnSale => hasDiscount;
 
   /// Get discount percentage
   double get discountPercent {
     if (mrpValue <= 0) return 0;
     return ((mrpValue - sellingPriceValue) / mrpValue * 100).roundToDouble();
   }
-
-  /// Get discount percentage as int
-  int get discountPercentage => discountPercent.toInt();
-
-  /// Check if product is in stock
-  bool get isInStock => inStock && stockQuantity > 0;
-
-  /// Check if product is out of stock
-  bool get isOutOfStock => !isInStock;
-
-  /// Get stock status
-  int get stock => stockQuantity;
-
-  /// Get primary image (alias for imageUrl)
-  String? get primaryImage => imageUrl;
-
-  /// Get formatted price string
-  String get formattedPrice => '₹${mrpValue.toStringAsFixed(0)}';
-
-  /// Get formatted sale price string
-  String get formattedSalePrice => '₹${sellingPriceValue.toStringAsFixed(0)}';
-
-  /// Get formatted display price
-  String get formattedDisplayPrice => '₹${displayPrice.toStringAsFixed(0)}';
-
-  @override
-  String toString() {
-    return 'Product(id: $id, name: $name, price: $mrpValue)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is Product && other.id == id;
-  }
-
-  @override
-  int get hashCode => id.hashCode;
 }
 
-class MainPhoto {
-  int id;
-  String name;
-  String fileName;
-  String mimeType;
-  String path;
-  int size;
-  DateTime createdAt;
-  DateTime updatedAt;
-
-  MainPhoto({
-    required this.id,
-    required this.name,
-    required this.fileName,
-    required this.mimeType,
-    required this.path,
-    required this.size,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory MainPhoto.fromJson(Map<String, dynamic> json) {
-    return MainPhoto(
-      id: json['id'] ?? 0,
-      name: json['name'] ?? '',
-      fileName: json['file_name'] ?? '',
-      mimeType: json['mime_type'] ?? '',
-      path: json['path'] ?? '',
-      size: json['size'] ?? 0,
-      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['updated_at'] ?? '') ?? DateTime.now(),
-    );
-  }
-
-  /// Get full URL for image using centralized helper
-  String get fullUrl => buildImageUrl(path) ?? '';
-}
-
-class ProductCategory {
-  String categoryId;
-  List<String> subcategoryIds;
-
-  ProductCategory({
-    required this.categoryId,
-    required this.subcategoryIds,
-  });
-
-  factory ProductCategory.fromJson(Map<String, dynamic> json) {
-    return ProductCategory(
-      categoryId: json['category_id']?.toString() ?? '',
-      subcategoryIds: (json['subcategory_ids'] as List<dynamic>?)
-          ?.map((e) => e.toString())
-          .toList() ?? [],
-    );
-  }
-}
-
-class Link {
-  String? url;
+class StockStatus {
+  bool available;
+  int quantity;
   String label;
-  int? page;
-  bool active;
 
-  Link({
-    this.url,
+  StockStatus({
+    required this.available,
+    required this.quantity,
     required this.label,
-    this.page,
-    required this.active,
   });
 
-  factory Link.fromJson(Map<String, dynamic> json) {
-    return Link(
-      url: json['url'],
+  factory StockStatus.fromJson(Map<String, dynamic> json) {
+    return StockStatus(
+      available: json['available'] ?? false,
+      quantity: json['quantity'] ?? 0,
       label: json['label'] ?? '',
-      page: json['page'],
-      active: json['active'] ?? false,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'available': available,
+      'quantity': quantity,
+      'label': label,
+    };
   }
 }

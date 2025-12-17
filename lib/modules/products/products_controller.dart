@@ -12,7 +12,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/services/api_service.dart';
-import '../../models/product.dart';
+import '../../models/subcatagories.dart';
 
 class ProductsController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
