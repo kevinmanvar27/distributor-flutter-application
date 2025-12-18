@@ -20,6 +20,7 @@ import '../../models/user.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/theme/app_theme.dart';
+import '../../routes/app_routes.dart';
 
 class ProfileController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
@@ -679,6 +680,7 @@ class ProfileController extends GetxController {
   }
 
   /// Delete user account
+  /// DELETE https://hardware.rektech.work/api/v1/profile/delete-account
   Future<void> deleteAccount() async {
     // Validate
     if (deletePasswordController.text.isEmpty) {
@@ -689,13 +691,13 @@ class ProfileController extends GetxController {
     isDeletingAccount.value = true;
 
     try {
-      final response = await _apiService.post(
+      final response = await _apiService.delete(
         '/profile/delete-account',
         data: {
           'password': deletePasswordController.text,
           'reason': deleteReasonController.text.isNotEmpty 
               ? deleteReasonController.text 
-              : 'No reason provided',
+              : 'No longer using the app',
         },
       );
 
@@ -711,7 +713,7 @@ class ProfileController extends GetxController {
         user.value = null;
 
         // Navigate to login
-        Get.offAllNamed('/login');
+        Get.offAllNamed(Routes.login);
         _showSnackbar('Account Deleted', 'Your account has been permanently deleted');
       } else {
         throw Exception('Failed to delete account');

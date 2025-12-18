@@ -44,9 +44,6 @@ class InvoiceView extends GetView<InvoiceController> {
             // Invoice Header
             _buildInvoiceHeader(),
             const SizedBox(height: AppTheme.spacingLG),
-            // Customer Info
-            _buildCustomerInfo(),
-            const SizedBox(height: AppTheme.spacingLG),
             // Line Items
             _buildLineItems(),
             const SizedBox(height: AppTheme.spacingLG),
@@ -80,22 +77,26 @@ class InvoiceView extends GetView<InvoiceController> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Invoice',
-                    style: AppTheme.bodySmall.copyWith(
-                      color: AppTheme.textTertiary,
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Invoice',
+                      style: AppTheme.bodySmall.copyWith(
+                        color: AppTheme.textTertiary,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '#${controller.invoice.invoiceNumber}',
-                    style: AppTheme.headingMedium,
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      '#${controller.invoice.invoiceNumber}',
+                      style: AppTheme.headingMedium,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: AppTheme.spacingSM),
               _buildStatusBadge(controller.invoice.status),
             ],
           ),
@@ -449,6 +450,8 @@ class InvoiceView extends GetView<InvoiceController> {
   // ─────────────────────────────────────────────────────────────────────────────
 
   Widget _buildActionButtons() {
+    final isDraft = controller.invoice.status.toLowerCase() == 'draft';
+    
     return Column(
       children: [
         DynamicButton(
@@ -458,13 +461,25 @@ class InvoiceView extends GetView<InvoiceController> {
           leadingIcon: Icons.picture_as_pdf_outlined,
         ),
         const SizedBox(height: AppTheme.spacingSM),
-        DynamicButton(
-          text: 'Back to Cart',
-          onPressed: controller.goBack,
-          isFullWidth: true,
-          variant: ButtonVariant.outlined,
-          leadingIcon: Icons.arrow_back,
-        ),
+        if (isDraft) ...[
+          // For draft invoices, show "Back to Cart" button
+          DynamicButton(
+            text: 'Back to Cart',
+            onPressed: controller.goBack,
+            isFullWidth: true,
+            variant: ButtonVariant.outlined,
+            leadingIcon: Icons.shopping_cart_outlined,
+          ),
+        ] else ...[
+          // For approved invoices (COD/Payment), show "Continue Shopping" button
+          DynamicButton(
+            text: 'Continue Shopping',
+            onPressed: controller.goToHome,
+            isFullWidth: true,
+            variant: ButtonVariant.outlined,
+            leadingIcon: Icons.home_outlined,
+          ),
+        ],
       ],
     );
   }

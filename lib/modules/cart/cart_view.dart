@@ -380,28 +380,32 @@ class CartView extends GetView<CartController> {
 
   Widget _buildPriceSummary(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppTheme.spacingMD),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spacingMD,
+        vertical: AppTheme.spacingSM,
+      ),
       decoration: BoxDecoration(
         color: AppTheme.surfaceColor,
         borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(AppTheme.radiusLG),
+          top: Radius.circular(AppTheme.radiusMD),
         ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
+            blurRadius: 8,
+            offset: const Offset(0, -3),
           ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Subtotal
           _buildPriceRow(
             'Subtotal (${controller.uniqueItemsCount} items)',
             '₹${controller.subtotal.toStringAsFixed(2)}',
           ),
-          const SizedBox(height: AppTheme.spacingSM),
+          const SizedBox(height: AppTheme.spacingXS),
           // Discount (if any)
           if (controller.totalDiscount > 0) ...[
             _buildPriceRow(
@@ -409,7 +413,7 @@ class CartView extends GetView<CartController> {
               '-₹${controller.totalDiscount.toStringAsFixed(2)}',
               valueColor: AppTheme.successColor,
             ),
-            const SizedBox(height: AppTheme.spacingSM),
+            const SizedBox(height: AppTheme.spacingXS),
           ],
           // Tax
           _buildPriceRow(
@@ -417,7 +421,7 @@ class CartView extends GetView<CartController> {
             '₹${controller.taxAmount.toStringAsFixed(2)}',
           ),
           const Padding(
-            padding: EdgeInsets.symmetric(vertical: AppTheme.spacingMD),
+            padding: EdgeInsets.symmetric(vertical: AppTheme.spacingXS),
             child: Divider(height: 1),
           ),
           // Total
@@ -425,9 +429,10 @@ class CartView extends GetView<CartController> {
             'Total',
             '₹${controller.total.toStringAsFixed(2)}',
             isBold: true,
-            labelStyle: AppTheme.headingSmall,
-            valueStyle: AppTheme.headingMedium.copyWith(
+            labelStyle: AppTheme.bodyLarge.copyWith(fontWeight: FontWeight.w600),
+            valueStyle: AppTheme.bodyLarge.copyWith(
               color: AppTheme.primaryColor,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],

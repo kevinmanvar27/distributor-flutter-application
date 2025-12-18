@@ -1,4 +1,5 @@
 // Cart Controller
+// Cart Controller
 // 
 // Manages shopping cart state and operations:
 // - Fetch cart items from API
@@ -8,18 +9,15 @@
 
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:collection/collection.dart';
+
 import '../../core/services/storage_service.dart';
 import '../../models/cart_item.dart';
 import '../../models/category.dart';
-import '../../models/cart_invoince.dart';
+import '../../models/cart_invoince.dart' as invoice_model;
 import '../../core/services/api_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../routes/app_routes.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
-import 'dart:convert';
-import 'package:file_saver/file_saver.dart'; // For invoice download
-import 'dart:typed_data'; // For Uint8List
 
 class CartController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
@@ -108,8 +106,8 @@ class CartController extends GetxController {
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) {
     _showSnackbar('Payment Successful', 'Transaction ID: ${response.paymentId}');
-    // Generate Invoice with 'paid' status
-    _generateAndSaveInvoice(status: 'paid', paymentId: response.paymentId);
+    // Generate Invoice with 'Approved' status after successful payment
+    _generateAndSaveInvoice(status: 'Approved', paymentId: response.paymentId);
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
@@ -119,9 +117,8 @@ class CartController extends GetxController {
 
   void _handleExternalWallet(ExternalWalletResponse response) {
     _showSnackbar('External Wallet', 'Wallet: ${response.walletName}');
-    // Allow to proceed? Usually treat as success or specific handling.
-    // For now, let's treat it as a success for invoice generation
-    _generateAndSaveInvoice(status: 'paid');
+    // Treat external wallet as successful payment
+    _generateAndSaveInvoice(status: 'Approved');
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -543,15 +540,16 @@ class CartController extends GetxController {
     );
   }
 
-  /// Process direct invoice generation
+  /// Process direct invoice generation (without payment)
+  /// Invoice status = Draft
   Future<void> _processDirectInvoice() async {
-    await _generateAndSaveInvoice(status: 'draft', isDirectInvoice: true);
+    await _generateAndSaveInvoice(status: 'Draft', isDirectInvoice: true);
   }
 
-  /// Process COD
+  /// Process COD (Cash on Delivery)
+  /// Generate invoice automatically with status = Approved
   Future<void> _processCOD() async {
-    // For COD, we basically just generate the invoice as 'draft' or 'pending' and place order
-    await _generateAndSaveInvoice(status: 'draft');
+    await _generateAndSaveInvoice(status: 'Approved');
   }
 
   /// Process Razorpay Payment
@@ -582,158 +580,242 @@ class CartController extends GetxController {
   }
 
   /// Core method to generate invoice via API and save to DB
+  /// 
+  /// Status values:
+  /// - 'Approved' for COD and Payment flows
+  /// - 'Draft' for Generate Invoice only flow
   Future<void> _generateAndSaveInvoice({required String status, String? paymentId, bool isDirectInvoice = false}) async {
     isCheckingOut.value = true;
     
     try {
       // 1. Get User ID
       final user = _storageService.getUser();
-      final userId = user?['id'] ?? 1; // Default to 1 if not found
+      final userId = user?['id'] ?? 1;
       
-      // 2. Generate Invoice Number (Mock logic if not provided by backend)
+      // 2. Generate Invoice Number and Session ID
       final invoiceNumber = 'INV-${DateTime.now().millisecondsSinceEpoch}';
+      final sessionId = 'session_${DateTime.now().millisecondsSinceEpoch}';
       
-      // 3. Prepare Payload as requested
+      // 3. Calculate totals
+      final invoiceSubtotal = cartItems.fold<double>(0, (sum, item) => sum + item.subtotal);
+      final discountPercentage = 0;
+      final discountAmount = 0;
+      final shipping = 0.0;
+      final taxPercentage = 18;
+      final invoiceTaxAmount = (invoiceSubtotal * taxPercentage / 100);
+      final invoiceTotal = invoiceSubtotal - discountAmount + shipping + invoiceTaxAmount;
+      
+      // 4. Build cart items for invoice
+      final invoiceCartItems = cartItems.map((item) => {
+        'product_id': item.productId,
+        'name': item.product.name,
+        'quantity': item.quantity,
+        'price': item.priceValue,
+      }).toList();
+      
+      // 5. Prepare full payload with invoice_data
       final payload = {
-        "user_id": userId,
-        "invoice_number": invoiceNumber,
-        "total_amount": total,
-        "status": status,
-        if (paymentId != null) "payment_id": paymentId,
+        'user_id': userId,
+        'session_id': sessionId,
+        'invoice_number': invoiceNumber,
+        'total_amount': invoiceTotal,
+        'status': status,
+        if (paymentId != null) 'payment_id': paymentId,
+        'invoice_data': {
+          'cart_items': invoiceCartItems,
+          'subtotal': invoiceSubtotal,
+          'discount_percentage': discountPercentage,
+          'discount_amount': discountAmount,
+          'shipping': shipping,
+          'tax_percentage': taxPercentage,
+          'tax_amount': invoiceTaxAmount,
+          'total': invoiceTotal,
+          'notes': 'This is a proforma invoice and not a tax invoice.',
+        },
       };
 
-      debugPrint('Generating Invoice: $payload');
+      debugPrint('═══════════════════════════════════════════════════════════');
+      debugPrint('GENERATE INVOICE - Payload:');
+      debugPrint('Status: $status');
+      debugPrint('Payload: $payload');
+      debugPrint('═══════════════════════════════════════════════════════════');
 
-      // 4. Call API - Using the correct endpoint as specified
+      // 6. Call API
       final response = await _apiService.post(
-        '/proforma-invoices', // Changed from '/cart/generate-invoice' to match the requirement
+        '/proforma-invoices',
         data: payload,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // Success
+        debugPrint('═══════════════════════════════════════════════════════════');
+        debugPrint('INVOICE API RESPONSE:');
+        debugPrint('Response Type: ${response.data.runtimeType}');
+        debugPrint('Response Data: ${response.data}');
+        debugPrint('═══════════════════════════════════════════════════════════');
+        
+        // 7. Build invoice response from local data + API response
+        // The API may not return the full structure expected by GenerateInvoice model,
+        // so we construct it from the payload we sent + any server-generated fields
+        final invoice_model.GenerateInvoice invoiceResponse = _buildInvoiceFromPayload(
+          payload: payload,
+          apiResponse: response.data,
+          invoiceNumber: invoiceNumber,
+          status: status,
+          invoiceTotal: invoiceTotal,
+        );
+        
+        // 8. Clear cart from database for Approved status only (COD/Payment flows)
+        // Draft invoices keep the cart intact
+        if (!isDirectInvoice) {
+          await _clearCartFromDatabase();
+        }
+        
+        // 9. Navigate to Invoice screen with data
+        Get.toNamed(Routes.invoice, arguments: invoiceResponse);
+        
+        // 10. Show success message
         _showSnackbar('Invoice Generated', 'Invoice #$invoiceNumber created successfully');
         
-        // 5. Show Invoice / Download Option
-        _showInvoiceSuccessDialog(invoiceNumber, payload);
-        
-        if (!isDirectInvoice) {
-            // Clear cart if it was a checkout flow
-            // For COD and Payment flows, clear the cart
-            cartItems.clear(); // Assume we clear cart on successful order/invoice
-            Get.offAllNamed(Routes.main); 
-        }
       } else {
         throw Exception('Failed to generate invoice API response: ${response.statusCode}');
       }
-    } catch (e) {
-      debugPrint('Error generating invoice: $e');
+    } catch (e, stackTrace) {
+      debugPrint('═══════════════════════════════════════════════════════════');
+      debugPrint('ERROR generating invoice: $e');
+      debugPrint('Stack trace: $stackTrace');
+      debugPrint('═══════════════════════════════════════════════════════════');
       _showSnackbar('Error', 'Failed to generate invoice', isError: true);
     } finally {
       isCheckingOut.value = false;
     }
   }
 
-  void _showInvoiceSuccessDialog(String invoiceId, Map<String, dynamic> data) {
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Invoice Generated'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Invoice #: $invoiceId'),
-            Text('Amount: ₹${data['total_amount']}'),
-            Text('Status: ${data['status']}'),
-            const SizedBox(height: 10),
-            const Text('Invoice has been saved to your account.'),
-          ],
+  /// Build GenerateInvoice object from local payload and API response
+  /// This handles cases where API doesn't return the full expected structure
+  invoice_model.GenerateInvoice _buildInvoiceFromPayload({
+    required Map<String, dynamic> payload,
+    required dynamic apiResponse,
+    required String invoiceNumber,
+    required String status,
+    required double invoiceTotal,
+  }) {
+    // Extract server-generated ID if available
+    int invoiceId = 0;
+    DateTime createdAt = DateTime.now();
+    DateTime updatedAt = DateTime.now();
+    
+    if (apiResponse is Map<String, dynamic>) {
+      // Try to get ID from various possible response structures
+      if (apiResponse['data'] != null && apiResponse['data'] is Map) {
+        final data = apiResponse['data'] as Map<String, dynamic>;
+        if (data['invoice'] != null && data['invoice'] is Map) {
+          invoiceId = data['invoice']['id'] ?? 0;
+          if (data['invoice']['created_at'] != null) {
+            createdAt = DateTime.tryParse(data['invoice']['created_at'].toString()) ?? DateTime.now();
+          }
+          if (data['invoice']['updated_at'] != null) {
+            updatedAt = DateTime.tryParse(data['invoice']['updated_at'].toString()) ?? DateTime.now();
+          }
+        } else {
+          invoiceId = data['id'] ?? 0;
+        }
+      } else if (apiResponse['invoice'] != null && apiResponse['invoice'] is Map) {
+        invoiceId = apiResponse['invoice']['id'] ?? 0;
+      } else {
+        invoiceId = apiResponse['id'] ?? 0;
+      }
+    }
+    
+    // Get user info
+    final user = _storageService.getUser();
+    final userId = user?['id'] ?? 1;
+    final userName = user?['name'] ?? 'Customer';
+    final userEmail = user?['email'] ?? '';
+    final userAddress = user?['address'] ?? '';
+    final userMobile = user?['mobile_number'] ?? user?['phone'] ?? '';
+    
+    // Build cart items for invoice model
+    final invoiceCartItems = cartItems.asMap().entries.map((entry) {
+      final index = entry.key;
+      final item = entry.value;
+      return invoice_model.CartItem(
+        id: index + 1,
+        productId: item.productId,
+        productName: item.product.name,
+        productDescription: item.product.description,
+        quantity: item.quantity,
+        price: item.priceValue.toStringAsFixed(2),
+        total: item.subtotal,
+      );
+    }).toList();
+    
+    // Build the complete GenerateInvoice object
+    return invoice_model.GenerateInvoice(
+      success: true,
+      message: 'Invoice generated successfully',
+      data: invoice_model.GenerateInvoiceData(
+        invoice: invoice_model.Invoice(
+          id: invoiceId,
+          invoiceNumber: invoiceNumber,
+          userId: userId,
+          totalAmount: invoiceTotal.toStringAsFixed(2),
+          invoiceData: payload['invoice_data'].toString(),
+          status: status,
+          createdAt: createdAt,
+          updatedAt: updatedAt,
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-               Get.back();
-               // Implement actual download logic if API returns file URL
-               // For now, mock download
-               _downloadInvoice(data);
-            },
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.download),
-                SizedBox(width: 4),
-                Text('Download'),
-              ],
-            ),
+        invoiceData: invoice_model.InvoiceData(
+          cartItems: invoiceCartItems,
+          total: invoiceTotal,
+          invoiceDate: DateTime.now(),
+          customer: invoice_model.Customer(
+            id: userId,
+            name: userName,
+            email: userEmail,
+            address: userAddress,
+            mobileNumber: userMobile,
           ),
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Close'),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Future<void> _downloadInvoice(Map<String, dynamic> data) async {
-    try {
-        // Simulate file creation from data
-        List<int> bytes = utf8.encode(jsonEncode(data));
-        await FileSaver.instance.saveFile(
-            name: 'Invoice_${data['invoice_number']}',
-            bytes: Uint8List.fromList(bytes),
-            ext: 'txt', // Or pdf if we had one
-            mimeType: MimeType.text,
-        );
-        _showSnackbar('Downloaded', 'Invoice saved to device');
-    } catch (e) {
-        _showSnackbar('Error', 'Failed to download', isError: true);
-    }
-  }
-
   // ─────────────────────────────────────────────────────────────────────────────
-  // Invoice Generation
+  // Invoice Generation (Public method for direct invoice generation)
   // ─────────────────────────────────────────────────────────────────────────────
 
-  /// Generate invoice from current cart (existing method, kept for backward compatibility)
+  /// Generate invoice from current cart (Draft status)
+  /// This is called when user wants to generate invoice without payment
   Future<void> generateInvoice() async {
-    if (isEmpty) {
-      _showSnackbar('Empty Cart', 'Add items to your cart first', isError: true);
-      return;
-    }
-
-    isGeneratingInvoice.value = true;
-
-    try {
-      final response = await _apiService.post('/cart/generate-invoice');
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = response.data;
-        final invoice = GenerateInvoice.fromJson(data);
-        
-        if (invoice.success) {
-          Get.toNamed(Routes.invoice, arguments: invoice);
-        } else {
-          throw Exception(invoice.message);
-        }
-      } else {
-        throw Exception('Failed to generate invoice');
-      }
-    } catch (e) {
-      debugPrint('CartController: Error generating invoice: $e');
-      _showSnackbar(
-        'Error',
-        'Failed to generate invoice',
-        isError: true,
-      );
-    } finally {
-      isGeneratingInvoice.value = false;
-    }
+    await _processDirectInvoice();
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Helpers
   // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Clear cart from database (used after successful checkout with Approved status)
+  Future<void> _clearCartFromDatabase() async {
+    try {
+      debugPrint('═══════════════════════════════════════════════════════════');
+      debugPrint('CLEARING CART FROM DATABASE');
+      debugPrint('═══════════════════════════════════════════════════════════');
+      
+      // Delete all cart items from database
+      for (final item in cartItems.toList()) {
+        await _apiService.delete('/cart/${item.id}');
+      }
+      
+      // Clear local cart
+      cartItems.clear();
+      cartItems.refresh();
+      
+      debugPrint('Cart cleared successfully from database');
+    } catch (e) {
+      debugPrint('Error clearing cart from database: $e');
+      // Don't throw - invoice was already generated successfully
+    }
+  }
 
   void _showSnackbar(String title, String message, {bool isError = false}) {
     Get.snackbar(
