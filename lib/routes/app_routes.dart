@@ -11,6 +11,10 @@ import '../modules/splash/splash_binding.dart';
 import '../modules/auth/login_view.dart';
 import '../modules/auth/register_view.dart';
 import '../modules/auth/auth_binding.dart';
+import '../modules/auth/forgot_password_view.dart';
+import '../modules/auth/otp_verification_view.dart';
+import '../modules/auth/reset_password_view.dart';
+import '../modules/auth/forgot_password_binding.dart';
 import '../modules/main/main_view.dart';
 import '../modules/main/main_binding.dart';
 import '../modules/product_detail/product_detail_view.dart';
@@ -32,6 +36,9 @@ abstract class Routes {
   static const splash = '/';
   static const login = '/login';
   static const register = '/register';
+  static const forgotPassword = '/forgot-password';
+  static const otpVerification = '/otp-verification';
+  static const resetPassword = '/reset-password';
   static const main = '/main';
   static const home = '/home';
   static const products = '/products';
@@ -80,6 +87,29 @@ class AppPages {
       name: Routes.register,
       page: () => const RegisterView(),
       binding: AuthBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    
+    // Forgot Password Flow
+    GetPage(
+      name: Routes.forgotPassword,
+      page: () => const ForgotPasswordView(),
+      binding: ForgotPasswordBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: Routes.otpVerification,
+      page: () => const OtpVerificationView(),
+      binding: ForgotPasswordBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: Routes.resetPassword,
+      page: () => const ResetPasswordView(),
+      binding: ForgotPasswordBinding(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 300),
     ),

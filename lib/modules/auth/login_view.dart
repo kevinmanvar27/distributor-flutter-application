@@ -120,14 +120,7 @@ class LoginView extends GetView<AuthController> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () {
-                          // TODO: Implement forgot password
-                          Get.snackbar(
-                            'Coming Soon',
-                            'Forgot password feature will be available soon.',
-                            snackPosition: SnackPosition.BOTTOM,
-                          );
-                        },
+                        onPressed: () => Get.toNamed('/forgot-password'),
                         child: Text(
                           'Forgot Password?',
                           style: AppTheme.bodySmall.copyWith(
