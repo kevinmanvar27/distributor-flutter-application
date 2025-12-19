@@ -189,6 +189,12 @@ class Item {
     return (displayOriginalPrice - priceValue) * quantity;
   }
   
+  /// Get discount percentage
+  double get discountPercent {
+    if (!hasDiscount || displayOriginalPrice <= 0) return 0;
+    return ((displayOriginalPrice - priceValue) / displayOriginalPrice) * 100;
+  }
+  
   /// Create a copy with updated values
   Item copyWith({
     int? id,

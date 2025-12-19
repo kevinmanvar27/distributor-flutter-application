@@ -1,18 +1,11 @@
-// Product Card Widget
+// Product Card Widget - Premium Design
 // 
-// Reusable product card with two variants:
-// - Grid: Vertical layout with 0.65 aspect ratio for grid views
-// - List: Horizontal layout for list views
-// 
-// Features:
-// - Image with hero animation support
-// - Sale badge
-// - Out of stock overlay
-// - Favorite button
-// - Add to cart button
-// - Price with discount display
-// 
-// TODO: Customize styles in AppTheme
+// Flipkart/Amazon style product card with:
+// - Premium shadow and elevation
+// - Gradient discount badges
+// - Modern typography
+// - Smooth animations
+// - Professional price display
 
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
@@ -29,6 +22,9 @@ class ProductCard extends StatelessWidget {
   final bool inStock;
   final double? discountPercent;
   final String? description;
+  final String? brand;
+  final double? rating;
+  final int? reviewCount;
   
   // UI configuration
   final ProductCardVariant variant;
@@ -50,6 +46,9 @@ class ProductCard extends StatelessWidget {
     this.inStock = true,
     this.discountPercent,
     this.description,
+    this.brand,
+    this.rating,
+    this.reviewCount,
     this.variant = ProductCardVariant.grid,
     this.onTap,
     this.onAddToCart,
@@ -62,6 +61,9 @@ class ProductCard extends StatelessWidget {
   
   // Computed properties
   bool get hasDiscount => sellingPrice < mrp;
+  double get calculatedDiscount => hasDiscount 
+      ? ((mrp - sellingPrice) / mrp * 100) 
+      : 0;
   
   @override
   Widget build(BuildContext context) {
@@ -74,7 +76,7 @@ class ProductCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        decoration: AppTheme.cardDecoration,
+        decoration: AppTheme.elevatedCardDecoration,
         clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,9 +88,9 @@ class ProductCard extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   _buildProductImage(),
-                  if (hasDiscount) _buildSaleBadge(),
+                  if (hasDiscount) _buildPremiumSaleBadge(),
                   if (!inStock) _buildOutOfStockOverlay(),
-                  if (showFavorite) _buildFavoriteButton(),
+                  if (showFavorite) _buildPremiumFavoriteButton(),
                 ],
               ),
             ),
@@ -98,20 +100,40 @@ class ProductCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Brand name (if available)
+                  if (brand != null && brand!.isNotEmpty)
+                    Text(
+                      brand!,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.textSecondary,
+                        letterSpacing: 0.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  const SizedBox(height: 2),
+                  // Product name
                   Text(
                     name,
-                    style: AppTheme.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w600,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.textPrimary,
+                      height: 1.2,
                     ),
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: AppTheme.spacingXs),
-                  _buildPriceRow(),
-                  // if (showAddToCart && inStock) ...[
-                  //   const SizedBox(height: AppTheme.spacingSm),
-                  //   _buildAddToCartButton(),
-                  // ],
+                  const SizedBox(height: 6),
+                  // Rating (if available)
+                  if (rating != null)
+                    _buildRatingBadge(),
+                  if (rating != null)
+                    const SizedBox(height: 6),
+                  // Price section
+                  _buildPremiumPriceRow(),
                 ],
               ),
             ),
@@ -125,19 +147,19 @@ class ProductCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        decoration: AppTheme.cardDecoration,
+        decoration: AppTheme.elevatedCardDecoration,
         clipBehavior: Clip.antiAlias,
         child: Row(
           children: [
             // Image section
             SizedBox(
-              width: 120,
-              height: 120,
+              width: 130,
+              height: 130,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
                   _buildProductImage(),
-                  if (hasDiscount) _buildSaleBadge(small: true),
+                  if (hasDiscount) _buildPremiumSaleBadge(small: true),
                   if (!inStock) _buildOutOfStockOverlay(),
                 ],
               ),
@@ -150,50 +172,65 @@ class ProductCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    // Brand
+                    if (brand != null && brand!.isNotEmpty)
+                      Text(
+                        brand!,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: AppTheme.textSecondary,
+                          letterSpacing: 0.3,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    const SizedBox(height: 2),
+                    // Name
                     Text(
                       name,
-                      style: AppTheme.bodyMedium.copyWith(
-                        fontWeight: FontWeight.w600,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.textPrimary,
                       ),
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: AppTheme.spacingXs),
+                    const SizedBox(height: 4),
+                    // Description
                     if (description != null && description!.isNotEmpty)
                       Text(
                         description!,
-                        style: AppTheme.bodySmall.copyWith(
+                        style: TextStyle(
+                          fontSize: 12,
                           color: AppTheme.textSecondary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    const SizedBox(height: AppTheme.spacingSm),
-                    _buildPriceRow(),
+                    const SizedBox(height: 6),
+                    // Rating
+                    if (rating != null)
+                      _buildRatingBadge(),
+                    if (rating != null)
+                      const SizedBox(height: 6),
+                    // Price
+                    _buildPremiumPriceRow(),
                   ],
                 ),
               ),
             ),
             // Actions
             Padding(
-              padding: const EdgeInsets.only(right: AppTheme.spacingMd),
+              padding: const EdgeInsets.only(right: AppTheme.spacingSm),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (showFavorite)
-                    IconButton(
-                      icon: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: isFavorite ? AppTheme.errorColor : AppTheme.textSecondary,
-                      ),
-                      onPressed: onFavorite,
-                    ),
+                    _buildListFavoriteButton(),
                   if (showAddToCart && inStock)
-                    IconButton(
-                      icon: const Icon(Icons.add_shopping_cart),
-                      color: AppTheme.primaryColor,
-                      onPressed: onAddToCart,
-                    ),
+                    _buildListCartButton(),
                 ],
               ),
             ),
@@ -219,20 +256,26 @@ class ProductCard extends StatelessWidget {
     if (heroTagPrefix != null) {
       return Hero(
         tag: '${heroTagPrefix}_$productId',
-        child: imageWidget,
+        child: Container(
+          color: Colors.white,
+          child: imageWidget,
+        ),
       );
     }
-    return imageWidget;
+    return Container(
+      color: Colors.white,
+      child: imageWidget,
+    );
   }
   
   Widget _buildPlaceholder() {
     return Container(
-      color: Colors.grey[200],
-      child: const Center(
+      color: AppTheme.backgroundColor,
+      child: Center(
         child: Icon(
-          Icons.image_outlined,
+          Icons.image_rounded,
           size: 48,
-          color: Colors.grey,
+          color: Colors.grey[400],
         ),
       ),
     );
@@ -240,36 +283,49 @@ class ProductCard extends StatelessWidget {
   
   Widget _buildLoadingPlaceholder() {
     return Container(
-      color: Colors.grey[200],
-      child: const Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
+      color: AppTheme.backgroundColor,
+      child: Center(
+        child: SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: AppTheme.primaryColor.withValues(alpha: 0.5),
+          ),
         ),
       ),
     );
   }
   
-  Widget _buildSaleBadge({bool small = false}) {
+  Widget _buildPremiumSaleBadge({bool small = false}) {
+    final discount = discountPercent ?? calculatedDiscount;
+    
     return Positioned(
-      top: small ? 4 : 8,
-      left: small ? 4 : 8,
+      top: small ? 6 : 8,
+      left: small ? 6 : 8,
       child: Container(
         padding: EdgeInsets.symmetric(
           horizontal: small ? 6 : 8,
-          vertical: small ? 2 : 4,
+          vertical: small ? 3 : 4,
         ),
         decoration: BoxDecoration(
-          color: AppTheme.errorColor,
-          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+          gradient: AppTheme.saleGradient,
+          borderRadius: BorderRadius.circular(4),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.errorColor.withValues(alpha: 0.3),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Text(
-          (discountPercent != null && discountPercent! > 0)
-              ? '-${discountPercent!.toStringAsFixed(0)}%'
-              : 'SALE',
+          discount > 0 ? '${discount.toStringAsFixed(0)}% OFF' : 'SALE',
           style: TextStyle(
             color: Colors.white,
-            fontSize: small ? 10 : 12,
-            fontWeight: FontWeight.bold,
+            fontSize: small ? 9 : 10,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.3,
           ),
         ),
       ),
@@ -278,114 +334,279 @@ class ProductCard extends StatelessWidget {
   
   Widget _buildOutOfStockOverlay() {
     return Container(
-      color: Colors.black.withValues(alpha: 0.5),
-      child: const Center(
-        child: Text(
-          'OUT OF STOCK',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.6),
+      ),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.9),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: const Text(
+            'OUT OF STOCK',
+            style: TextStyle(
+              color: AppTheme.textPrimary,
+              fontWeight: FontWeight.w700,
+              fontSize: 11,
+              letterSpacing: 0.5,
+            ),
           ),
         ),
       ),
     );
   }
   
-  Widget _buildFavoriteButton() {
+  Widget _buildPremiumFavoriteButton() {
     return Positioned(
       top: 8,
       right: 8,
-      child: Container(
-        height: 32,
-        width: 32,
-        decoration: BoxDecoration(
-          color: Colors.white38,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onFavorite,
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            height: 32,
+            width: 32,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: AppTheme.shadowSm,
             ),
-          ],
-        ),
-        child: IconButton(
-          icon: Icon(
-            isFavorite ? Icons.favorite : Icons.favorite_border,
-            color: isFavorite ? AppTheme.errorColor : AppTheme.textSecondary,
-            size: 23,
+            child: Icon(
+              isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+              color: isFavorite ? AppTheme.errorColor : AppTheme.textSecondary,
+              size: 18,
+            ),
           ),
-          onPressed: onFavorite,
-          constraints: const BoxConstraints(
-            minWidth: 36,
-            minHeight: 36,
-          ),
-          padding: EdgeInsets.zero,
         ),
       ),
     );
   }
   
-  Widget _buildPriceRow() {
-    final formattedSellingPrice = '₹${sellingPrice.toStringAsFixed(2)}';
-    final formattedMrp = '₹${mrp.toStringAsFixed(2)}';
-    
-    return Row(
-      children: [
-        // Show selling price as main price
-        Text(
-          formattedSellingPrice,
-          style: AppTheme.bodyMedium.copyWith(
-            fontWeight: FontWeight.bold,
-            color: AppTheme.primaryColor,
+  Widget _buildListFavoriteButton() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onFavorite,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          height: 36,
+          width: 36,
+          decoration: BoxDecoration(
+            color: isFavorite 
+                ? AppTheme.errorColor.withValues(alpha: 0.1) 
+                : AppTheme.backgroundColor,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+            color: isFavorite ? AppTheme.errorColor : AppTheme.textSecondary,
+            size: 20,
           ),
         ),
-        // Show MRP crossed out if there's a discount
-        if (hasDiscount) ...[
-          const SizedBox(width: AppTheme.spacingXs),
+      ),
+    );
+  }
+  
+  Widget _buildListCartButton() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onAddToCart,
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            height: 36,
+            width: 36,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.add_shopping_cart_rounded,
+              color: AppTheme.primaryColor,
+              size: 20,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildRatingBadge() {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: rating! >= 4 
+                ? AppTheme.successColor 
+                : rating! >= 3 
+                    ? Colors.amber[700] 
+                    : AppTheme.errorColor,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                rating!.toStringAsFixed(1),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 2),
+              const Icon(
+                Icons.star_rounded,
+                color: Colors.white,
+                size: 10,
+              ),
+            ],
+          ),
+        ),
+        if (reviewCount != null) ...[
+          const SizedBox(width: 6),
           Text(
-            formattedMrp,
-            style: AppTheme.bodySmall.copyWith(
+            '($reviewCount)',
+            style: TextStyle(
+              fontSize: 11,
               color: AppTheme.textSecondary,
-              decoration: TextDecoration.lineThrough,
             ),
           ),
         ],
       ],
     );
   }
+  
+  Widget _buildPremiumPriceRow() {
+    final formattedSellingPrice = '₹${sellingPrice.toStringAsFixed(0)}';
+    final formattedMrp = '₹${mrp.toStringAsFixed(0)}';
+    final discount = discountPercent ?? calculatedDiscount;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            // Selling price
+            Text(
+              formattedSellingPrice,
+              style: AppTheme.priceStyle,
+            ),
+            // MRP crossed out
+            if (hasDiscount) ...[
+              const SizedBox(width: 6),
+              Text(
+                formattedMrp,
+                style: AppTheme.strikePrice,
+              ),
+            ],
+          ],
+        ),
+        // Discount text
+        if (hasDiscount && discount > 0)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(
+              '${discount.toStringAsFixed(0)}% off',
+              style: AppTheme.discountStyle,
+            ),
+          ),
+      ],
+    );
+  }
 }
 
-/// A shimmer loading placeholder for product cards
-class ProductCardShimmer extends StatelessWidget {
+/// A shimmer loading placeholder for product cards - Premium Design
+class ProductCardShimmer extends StatefulWidget {
   final ProductCardVariant variant;
   
   const ProductCardShimmer({
     super.key,
     this.variant = ProductCardVariant.grid,
   });
+
+  @override
+  State<ProductCardShimmer> createState() => _ProductCardShimmerState();
+}
+
+class _ProductCardShimmerState extends State<ProductCardShimmer> 
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat();
+    _animation = Tween<double>(begin: -2, end: 2).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
   
   @override
   Widget build(BuildContext context) {
-    return variant == ProductCardVariant.grid
+    return widget.variant == ProductCardVariant.grid
         ? _buildGridShimmer()
         : _buildListShimmer();
   }
   
+  Widget _buildShimmerBox({
+    double? width,
+    double? height,
+    BorderRadius? borderRadius,
+  }) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            borderRadius: borderRadius ?? BorderRadius.circular(4),
+            gradient: LinearGradient(
+              begin: Alignment(_animation.value, 0),
+              end: Alignment(_animation.value + 1, 0),
+              colors: [
+                Colors.grey[300]!,
+                Colors.grey[100]!,
+                Colors.grey[300]!,
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+  
   Widget _buildGridShimmer() {
     return Container(
-      decoration: AppTheme.cardDecoration,
+      decoration: AppTheme.elevatedCardDecoration,
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image placeholder - use Expanded to take available space
+          // Image placeholder
           Expanded(
             flex: 3,
-            child: Container(
-              width: double.infinity,
-              color: Colors.grey[300],
+            child: _buildShimmerBox(
+              borderRadius: BorderRadius.zero,
             ),
           ),
           // Content placeholder
@@ -397,29 +618,15 @@ class ProductCardShimmer extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  Container(
-                    height: 14,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  Container(
-                    height: 14,
-                    width: 80,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  Container(
-                    height: 32,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                  _buildShimmerBox(height: 10, width: 60),
+                  _buildShimmerBox(height: 14, width: double.infinity),
+                  _buildShimmerBox(height: 14, width: 100),
+                  Row(
+                    children: [
+                      _buildShimmerBox(height: 16, width: 70),
+                      const SizedBox(width: 8),
+                      _buildShimmerBox(height: 12, width: 50),
+                    ],
                   ),
                 ],
               ),
@@ -432,14 +639,14 @@ class ProductCardShimmer extends StatelessWidget {
   
   Widget _buildListShimmer() {
     return Container(
-      decoration: AppTheme.cardDecoration,
+      decoration: AppTheme.elevatedCardDecoration,
       clipBehavior: Clip.antiAlias,
       child: Row(
         children: [
-          Container(
-            width: 120,
-            height: 120,
-            color: Colors.grey[300],
+          SizedBox(
+            width: 130,
+            height: 130,
+            child: _buildShimmerBox(borderRadius: BorderRadius.zero),
           ),
           Expanded(
             child: Padding(
@@ -448,37 +655,152 @@ class ProductCardShimmer extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    height: 16,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
+                  _buildShimmerBox(height: 10, width: 60),
+                  const SizedBox(height: 6),
+                  _buildShimmerBox(height: 14, width: double.infinity),
+                  const SizedBox(height: 4),
+                  _buildShimmerBox(height: 12, width: 150),
                   const SizedBox(height: 8),
-                  Container(
-                    height: 12,
-                    width: 150,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    height: 16,
-                    width: 80,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(4),
-                    ),
+                  _buildShimmerBox(height: 20, width: 50),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      _buildShimmerBox(height: 18, width: 80),
+                      const SizedBox(width: 8),
+                      _buildShimmerBox(height: 14, width: 50),
+                    ],
                   ),
                 ],
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Compact product card for horizontal lists
+class CompactProductCard extends StatelessWidget {
+  final int productId;
+  final String name;
+  final String? imageUrl;
+  final double sellingPrice;
+  final double? mrp;
+  final double? discountPercent;
+  final VoidCallback? onTap;
+  final double width;
+  
+  const CompactProductCard({
+    super.key,
+    required this.productId,
+    required this.name,
+    this.imageUrl,
+    required this.sellingPrice,
+    this.mrp,
+    this.discountPercent,
+    this.onTap,
+    this.width = 140,
+  });
+  
+  bool get hasDiscount => mrp != null && sellingPrice < mrp!;
+  
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: width,
+        decoration: AppTheme.elevatedCardDecoration,
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image
+            AspectRatio(
+              aspectRatio: 1,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Container(
+                    color: Colors.white,
+                    child: imageUrl != null
+                        ? Image.network(
+                            imageUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Icon(
+                              Icons.image_rounded,
+                              size: 40,
+                              color: Colors.grey[400],
+                            ),
+                          )
+                        : Icon(
+                            Icons.image_rounded,
+                            size: 40,
+                            color: Colors.grey[400],
+                          ),
+                  ),
+                  if (hasDiscount)
+                    Positioned(
+                      top: 6,
+                      left: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: AppTheme.saleGradient,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '${discountPercent?.toStringAsFixed(0) ?? ((mrp! - sellingPrice) / mrp! * 100).toStringAsFixed(0)}% OFF',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            // Info
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.textPrimary,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '₹${sellingPrice.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  if (hasDiscount)
+                    Text(
+                      '₹${mrp!.toStringAsFixed(0)}',
+                      style: AppTheme.strikePrice.copyWith(fontSize: 11),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

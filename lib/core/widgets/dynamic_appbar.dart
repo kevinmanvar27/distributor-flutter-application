@@ -1,12 +1,10 @@
-// Dynamic AppBar Widget
+// Dynamic AppBar Widget - Premium Design
 // 
-// A reusable app bar component with:
-// - Customizable title (text or widget)
-// - Leading and trailing actions
-// - Optional search functionality
-// - Transparent/colored variants
-// 
-// TODO: Customize default colors in AppTheme
+// Flipkart/Amazon style app bar with:
+// - Gradient background option
+// - Modern typography
+// - Premium shadows
+// - Smooth animations
 
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
@@ -24,6 +22,7 @@ class DynamicAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onBackPressed;
   final PreferredSizeWidget? bottom;
   final bool isTransparent;
+  final bool useGradient;
   
   const DynamicAppBar({
     super.key,
@@ -39,6 +38,7 @@ class DynamicAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onBackPressed,
     this.bottom,
     this.isTransparent = false,
+    this.useGradient = false,
   });
   
   @override
@@ -50,25 +50,37 @@ class DynamicAppBar extends StatelessWidget implements PreferredSizeWidget {
     final fgColor = foregroundColor ?? 
         (isTransparent ? AppTheme.textPrimary : Colors.white);
     
-    return AppBar(
+    final appBar = AppBar(
       title: titleWidget ?? (title != null 
           ? Text(
               title!,
               style: TextStyle(
                 color: fgColor,
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.w600,
+                letterSpacing: 0.2,
               ),
             )
           : null),
       centerTitle: centerTitle,
-      backgroundColor: bgColor,
+      backgroundColor: useGradient ? Colors.transparent : bgColor,
       foregroundColor: fgColor,
-      elevation: elevation,
+      elevation: useGradient ? 0 : elevation,
       scrolledUnderElevation: elevation,
       leading: leading ?? (showBackButton && canPop
           ? IconButton(
-              icon: Icon(Icons.arrow_back_ios, color: fgColor),
+              icon: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.arrow_back_ios_rounded,
+                  color: fgColor,
+                  size: 18,
+                ),
+              ),
               onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
               tooltip: 'Back',
             )
@@ -76,6 +88,17 @@ class DynamicAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: actions,
       bottom: bottom,
     );
+    
+    if (useGradient) {
+      return Container(
+        decoration: const BoxDecoration(
+          gradient: AppTheme.primaryGradient,
+        ),
+        child: appBar,
+      );
+    }
+    
+    return appBar;
   }
   
   @override
@@ -84,7 +107,7 @@ class DynamicAppBar extends StatelessWidget implements PreferredSizeWidget {
   );
 }
 
-/// AppBar with search functionality
+/// Premium AppBar with search functionality
 class SearchAppBar extends StatefulWidget implements PreferredSizeWidget {
   final String title;
   final String hintText;
@@ -92,15 +115,17 @@ class SearchAppBar extends StatefulWidget implements PreferredSizeWidget {
   final VoidCallback? onClear;
   final List<Widget>? actions;
   final bool autoFocus;
+  final bool useGradient;
   
   const SearchAppBar({
     super.key,
     required this.title,
-    this.hintText = 'Search...',
+    this.hintText = 'Search products, brands...',
     this.onSearch,
     this.onClear,
     this.actions,
     this.autoFocus = false,
+    this.useGradient = true,
   });
   
   @override
@@ -136,45 +161,88 @@ class _SearchAppBarState extends State<SearchAppBar> {
   
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: AppTheme.primaryColor,
+    final appBar = AppBar(
+      backgroundColor: widget.useGradient ? Colors.transparent : AppTheme.primaryColor,
       foregroundColor: Colors.white,
       elevation: 0,
       title: _isSearching
-          ? TextField(
-              controller: _searchController,
-              focusNode: _focusNode,
-              autofocus: widget.autoFocus,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: widget.hintText,
-                hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
+          ? Container(
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
               ),
-              onChanged: widget.onSearch,
+              child: TextField(
+                controller: _searchController,
+                focusNode: _focusNode,
+                autofocus: widget.autoFocus,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                ),
+                decoration: InputDecoration(
+                  hintText: widget.hintText,
+                  hintStyle: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.6),
+                    fontSize: 14,
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search_rounded,
+                    color: Colors.white.withValues(alpha: 0.7),
+                    size: 20,
+                  ),
+                ),
+                onChanged: widget.onSearch,
+              ),
             )
           : Text(
               widget.title,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.w600,
+                letterSpacing: 0.2,
               ),
             ),
       actions: [
         IconButton(
-          icon: Icon(_isSearching ? Icons.close : Icons.search),
+          icon: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              _isSearching ? Icons.close_rounded : Icons.search_rounded,
+              size: 20,
+            ),
+          ),
           onPressed: _toggleSearch,
           tooltip: _isSearching ? 'Close search' : 'Search',
         ),
         if (!_isSearching && widget.actions != null) ...widget.actions!,
       ],
     );
+    
+    if (widget.useGradient) {
+      return Container(
+        decoration: const BoxDecoration(
+          gradient: AppTheme.primaryGradient,
+        ),
+        child: appBar,
+      );
+    }
+    
+    return appBar;
   }
 }
 
-/// Sliver AppBar variant for scrollable content
+/// Premium Sliver AppBar for scrollable content
 class DynamicSliverAppBar extends StatelessWidget {
   final String title;
   final Widget? flexibleSpace;
@@ -183,6 +251,7 @@ class DynamicSliverAppBar extends StatelessWidget {
   final bool pinned;
   final bool floating;
   final bool snap;
+  final bool useGradient;
   
   const DynamicSliverAppBar({
     super.key,
@@ -193,6 +262,7 @@ class DynamicSliverAppBar extends StatelessWidget {
     this.pinned = true,
     this.floating = false,
     this.snap = false,
+    this.useGradient = true,
   });
   
   @override
@@ -210,14 +280,64 @@ class DynamicSliverAppBar extends StatelessWidget {
           title,
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 18,
+            fontSize: 16,
             fontWeight: FontWeight.w600,
+            letterSpacing: 0.2,
           ),
         ),
-        background: flexibleSpace,
+        background: useGradient
+            ? Container(
+                decoration: const BoxDecoration(
+                  gradient: AppTheme.primaryGradient,
+                ),
+                child: flexibleSpace,
+              )
+            : flexibleSpace,
         centerTitle: true,
       ),
       actions: actions,
     );
   }
+}
+
+/// Premium Tab Bar for use with AppBar
+class PremiumTabBar extends StatelessWidget implements PreferredSizeWidget {
+  final TabController controller;
+  final List<String> tabs;
+  final bool isScrollable;
+  
+  const PremiumTabBar({
+    super.key,
+    required this.controller,
+    required this.tabs,
+    this.isScrollable = false,
+  });
+  
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppTheme.primaryColor,
+      child: TabBar(
+        controller: controller,
+        isScrollable: isScrollable,
+        indicatorColor: Colors.white,
+        indicatorWeight: 3,
+        indicatorSize: TabBarIndicatorSize.label,
+        labelColor: Colors.white,
+        unselectedLabelColor: Colors.white.withValues(alpha: 0.7),
+        labelStyle: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+        tabs: tabs.map((t) => Tab(text: t)).toList(),
+      ),
+    );
+  }
+  
+  @override
+  Size get preferredSize => const Size.fromHeight(48);
 }

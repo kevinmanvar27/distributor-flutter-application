@@ -6,7 +6,6 @@ import 'core/services/storage_service.dart';
 import 'core/services/api_service.dart';
 import 'modules/wishlist/wishlist_controller.dart';
 import 'routes/app_routes.dart';
-import 'models/Setting.dart' as settings_model;
 
 void main() async {
   // Ensure Flutter bindings are initialized

@@ -350,6 +350,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
 /// Convenience constructors for common field types
 class EmailTextField extends StatelessWidget {
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final String? label;
   final String? Function(String?)? validator;
   final ValueChanged<String>? onChanged;
@@ -358,6 +359,7 @@ class EmailTextField extends StatelessWidget {
   const EmailTextField({
     super.key,
     this.controller,
+    this.focusNode,
     this.label = 'Email',
     this.validator,
     this.onChanged,
@@ -368,6 +370,7 @@ class EmailTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomTextField(
       controller: controller,
+      focusNode: focusNode,
       label: label,
       variant: TextFieldVariant.email,
       validator: validator,
@@ -379,6 +382,7 @@ class EmailTextField extends StatelessWidget {
 
 class PasswordTextField extends StatelessWidget {
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final String? label;
   final String? Function(String?)? validator;
   final ValueChanged<String>? onChanged;
@@ -387,6 +391,7 @@ class PasswordTextField extends StatelessWidget {
   const PasswordTextField({
     super.key,
     this.controller,
+    this.focusNode,
     this.label = 'Password',
     this.validator,
     this.onChanged,
@@ -397,6 +402,7 @@ class PasswordTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomTextField(
       controller: controller,
+      focusNode: focusNode,
       label: label,
       variant: TextFieldVariant.password,
       validator: validator,
@@ -430,7 +436,7 @@ class SearchTextField extends StatelessWidget {
     this.fillColor,
     this.textColor,
     this.hintColor,
-    this.iconColor,
+    this.iconColor, required IconButton suffixIcon,
   });
   
   @override

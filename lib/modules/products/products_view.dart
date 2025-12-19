@@ -1,19 +1,16 @@
-// Products View
+// Products View - Premium Design
 // 
-// Products listing screen with:
-// - Grid view display
-// - Debounced search bar
-// - Infinite scroll pagination
-// - Pull-to-refresh
-// - NO sort options (removed)
-// - NO category filtering (removed)
+// Flipkart/Amazon style products listing with:
+// - Premium gradient AppBar
+// - Modern filter bar
+// - Enhanced grid layout
+// - Professional loading/error/empty states
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/product_card.dart';
 import '../../core/widgets/custom_text_field.dart';
-import '../../core/widgets/dynamic_appbar.dart';
 import '../cart/cart_controller.dart';
 import '../wishlist/wishlist_controller.dart';
 import 'products_controller.dart';
@@ -24,161 +21,349 @@ class ProductsView extends GetView<ProductsController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _buildAppBar(),
-      body: Obx(() {
-        debugPrint('ProductsView: body Obx rebuilding');
-        debugPrint('ProductsView: isLoading=${controller.isLoading.value}, products.length=${controller.products.length}');
-        
-        if (controller.isLoading.value && controller.products.isEmpty) {
-          debugPrint('ProductsView: Showing loading state');
-          return _buildLoadingState();
-        }
-        
-        if (controller.hasError.value && controller.products.isEmpty) {
-          debugPrint('ProductsView: Showing error state');
-          return _buildErrorState();
-        }
-        
-        if (controller.products.isEmpty) {
-          debugPrint('ProductsView: Showing empty state');
-          return _buildEmptyState();
-        }
-        
-        debugPrint('ProductsView: Showing products list with ${controller.products.length} items');
-        return _buildProductsList();
-      }),
+      backgroundColor: AppTheme.backgroundColor,
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          _buildPremiumAppBar(context),
+        ],
+        body: Obx(() {
+          if (controller.isLoading.value && controller.products.isEmpty) {
+            return _buildLoadingState();
+          }
+          
+          if (controller.hasError.value && controller.products.isEmpty) {
+            return _buildErrorState();
+          }
+          
+          if (controller.products.isEmpty) {
+            return _buildEmptyState();
+          }
+          
+          return _buildProductsList();
+        }),
+      ),
     );
   }
   
-  PreferredSizeWidget _buildAppBar() {
-    return PreferredSize(
-      preferredSize: const Size.fromHeight(kToolbarHeight + 48),
-      child: Obx(() {
-        if (controller.isSearching.value) {
-          // Search mode: show search input in app bar
-          return DynamicAppBar(
-            showBackButton: false,
-            titleWidget: SearchTextField(
-              controller: controller.searchController,
-              hint: 'Search products...',
-              autofocus: true,
-              onSubmitted: controller.search,
-              onChanged: controller.onSearchChanged,
-              fillColor: Colors.white.withValues(alpha: 0.15),
-              textColor: Colors.white,
-              hintColor: Colors.white70,
-              iconColor: Colors.white70,
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.close, color: Colors.white),
-                onPressed: controller.clearSearch,
-              ),
-            ],
-            bottom: _buildFilterBar(),
-          );
-        }
-        
-        // Normal mode: show title with search action
-        return DynamicAppBar(
-          title: 'Products',
-          showBackButton: false,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.search, color: Colors.white),
-              onPressed: controller.toggleSearch,
-            ),
-          ],
-          bottom: _buildFilterBar(),
-        );
-      }),
-    );
-  }
-  
-  PreferredSize _buildFilterBar() {
-    return PreferredSize(
-      preferredSize: const Size.fromHeight(48),
-      child: Container(
-        height: 48,
-        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
-        color: AppTheme.primaryColor, // Match DynamicAppBar background
-        child: Row(
-          children: [
-            Obx(() => Text(
-              '${controller.products.length} products',
-              style: AppTheme.bodySmall.copyWith(
-                color: Colors.white70, // White text on primary background
-              ),
-            )),
-            const Spacer(),
-            // Show search query indicator when searching
-            Obx(() {
-              if (controller.searchQuery.value.isNotEmpty) {
-                return Row(
-                  children: [
-                    const Icon(Icons.search, size: 16, color: Colors.white70),
-                    const SizedBox(width: 4),
-                    Text(
-                      '"${controller.searchQuery.value}"',
-                      style: AppTheme.bodySmall.copyWith(
-                        color: Colors.white,
-                        fontStyle: FontStyle.italic,
+  Widget _buildPremiumAppBar(BuildContext context) {
+    return SliverAppBar(
+      expandedHeight: 120,
+      floating: true,
+      pinned: true,
+      elevation: 0,
+      backgroundColor: AppTheme.primaryColor,
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+          gradient: AppTheme.primaryGradient,
+        ),
+        child: FlexibleSpaceBar(
+          background: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title row
+                  Row(
+                    children: [
+                      const Text(
+                        'Products',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
+                        ),
                       ),
-                    ),
-                  ],
-                );
-              }
-              return const SizedBox.shrink();
-            }),
-          ],
+                      const Spacer(),
+                      // Cart button with badge
+                      _buildCartButton(),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(56),
+        child: Container(
+          height: 56,
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          decoration: const BoxDecoration(
+            gradient: AppTheme.primaryGradient,
+          ),
+          child: _buildSearchBar(),
         ),
       ),
     );
   }
   
-  Widget _buildLoadingState() {
-    return GridView.builder(
-      padding: const EdgeInsets.all(AppTheme.spacingMd),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.65,
-        crossAxisSpacing: AppTheme.spacingMd,
-        mainAxisSpacing: AppTheme.spacingMd,
+  Widget _buildCartButton() {
+    return GetX<CartController>(
+      builder: (cartController) {
+        final itemCount = cartController.cartItems.length;
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.shopping_cart_rounded,
+                color: Colors.white,
+                size: 22,
+              ),
+            ),
+            if (itemCount > 0)
+              Positioned(
+                right: -4,
+                top: -4,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    gradient: AppTheme.saleGradient,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 1.5),
+                  ),
+                  constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                  child: Text(
+                    itemCount > 99 ? '99+' : itemCount.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+  
+  Widget _buildSearchBar() {
+    return GestureDetector(
+      onTap: controller.toggleSearch,
+      child: Obx(() {
+        if (controller.isSearching.value) {
+          return Container(
+            height: 44,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: AppTheme.shadowSm,
+            ),
+            child: SearchTextField(
+              controller: controller.searchController,
+              hint: 'Search products, brands...',
+              autofocus: true,
+              onSubmitted: controller.search,
+              onChanged: controller.onSearchChanged,
+              fillColor: Colors.white,
+              textColor: AppTheme.textPrimary,
+              hintColor: AppTheme.textSecondary,
+              iconColor: AppTheme.textSecondary,
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.close_rounded, size: 20),
+                onPressed: controller.clearSearch,
+                color: AppTheme.textSecondary,
+              ),
+            ),
+          );
+        }
+        
+        return Container(
+          height: 44,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: AppTheme.shadowSm,
+          ),
+          child: Row(
+            children: [
+              const SizedBox(width: 12),
+              Icon(
+                Icons.search_rounded,
+                color: AppTheme.textSecondary,
+                size: 22,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  controller.searchQuery.value.isNotEmpty
+                      ? controller.searchQuery.value
+                      : 'Search products, brands...',
+                  style: TextStyle(
+                    color: controller.searchQuery.value.isNotEmpty
+                        ? AppTheme.textPrimary
+                        : AppTheme.textSecondary,
+                    fontSize: 14,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Container(
+                height: 24,
+                width: 1,
+                color: Colors.grey[300],
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.mic_rounded,
+                color: AppTheme.textSecondary,
+                size: 22,
+              ),
+              const SizedBox(width: 12),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+  
+  Widget _buildFilterBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        boxShadow: AppTheme.shadowSm,
       ),
-      itemCount: 6,
-      itemBuilder: (context, index) => const ProductCardShimmer(),
+      child: Row(
+        children: [
+          // Product count
+          Obx(() => Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              '${controller.products.length} Products',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.primaryColor,
+              ),
+            ),
+          )),
+          const Spacer(),
+          // Search indicator
+          Obx(() {
+            if (controller.searchQuery.value.isNotEmpty) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.backgroundColor,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.search_rounded,
+                      size: 14,
+                      color: AppTheme.textSecondary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '"${controller.searchQuery.value}"',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textSecondary,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: controller.clearSearch,
+                      child: Icon(
+                        Icons.close_rounded,
+                        size: 14,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          }),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildLoadingState() {
+    return Column(
+      children: [
+        _buildFilterBar(),
+        Expanded(
+          child: GridView.builder(
+            padding: const EdgeInsets.all(12),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.62,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+            ),
+            itemCount: 6,
+            itemBuilder: (context, index) => const ProductCardShimmer(),
+          ),
+        ),
+      ],
     );
   }
   
   Widget _buildErrorState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spacingLg),
+        padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64,
-              color: AppTheme.textSecondary,
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppTheme.errorColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.error_outline_rounded,
+                size: 48,
+                color: AppTheme.errorColor,
+              ),
             ),
-            const SizedBox(height: AppTheme.spacingMd),
-            Text(
-              'Failed to load products',
-              style: AppTheme.titleMedium,
+            const SizedBox(height: 20),
+            const Text(
+              'Oops! Something went wrong',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textPrimary,
+              ),
             ),
-            const SizedBox(height: AppTheme.spacingSm),
+            const SizedBox(height: 8),
             Obx(() => Text(
               controller.errorMessage.value,
-              style: AppTheme.bodyMedium.copyWith(
+              style: TextStyle(
+                fontSize: 14,
                 color: AppTheme.textSecondary,
               ),
               textAlign: TextAlign.center,
             )),
-            const SizedBox(height: AppTheme.spacingLg),
+            const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: controller.loadProducts,
-              icon: const Icon(Icons.refresh),
+              style: AppTheme.primaryButtonStyle,
+              icon: const Icon(Icons.refresh_rounded),
               label: const Text('Try Again'),
             ),
           ],
@@ -190,26 +375,38 @@ class ProductsView extends GetView<ProductsController> {
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppTheme.spacingLg),
+        padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.inventory_2_outlined,
-              size: 64,
-              color: AppTheme.textSecondary,
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.inventory_2_rounded,
+                size: 48,
+                color: AppTheme.primaryColor,
+              ),
             ),
-            const SizedBox(height: AppTheme.spacingMd),
-            Text(
+            const SizedBox(height: 20),
+            const Text(
               'No products found',
-              style: AppTheme.titleMedium,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textPrimary,
+              ),
             ),
-            const SizedBox(height: AppTheme.spacingSm),
+            const SizedBox(height: 8),
             Obx(() => Text(
               controller.searchQuery.value.isNotEmpty
                   ? 'No results for "${controller.searchQuery.value}"'
                   : 'Check back later for new products',
-              style: AppTheme.bodyMedium.copyWith(
+              style: TextStyle(
+                fontSize: 14,
                 color: AppTheme.textSecondary,
               ),
               textAlign: TextAlign.center,
@@ -217,10 +414,19 @@ class ProductsView extends GetView<ProductsController> {
             Obx(() {
               if (controller.searchQuery.value.isNotEmpty) {
                 return Padding(
-                  padding: const EdgeInsets.only(top: AppTheme.spacingLg),
-                  child: ElevatedButton(
+                  padding: const EdgeInsets.only(top: 24),
+                  child: OutlinedButton.icon(
                     onPressed: controller.clearSearch,
-                    child: const Text('Clear Search'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.primaryColor,
+                      side: const BorderSide(color: AppTheme.primaryColor),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                    ),
+                    icon: const Icon(Icons.clear_rounded),
+                    label: const Text('Clear Search'),
                   ),
                 );
               }
@@ -233,63 +439,78 @@ class ProductsView extends GetView<ProductsController> {
   }
   
   Widget _buildProductsList() {
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        if (notification is ScrollEndNotification) {
-          final metrics = notification.metrics;
-          if (metrics.pixels >= metrics.maxScrollExtent - 200) {
-            controller.loadMoreProducts();
-          }
-        }
-        return false;
-      },
-      child: RefreshIndicator(
-        onRefresh: controller.refreshProducts,
-        child: Obx(() => GridView.builder(
-          padding: const EdgeInsets.all(AppTheme.spacingMd),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.65,
-            crossAxisSpacing: AppTheme.spacingMd,
-            mainAxisSpacing: AppTheme.spacingMd,
-          ),
-          itemCount: controller.products.length + (controller.hasMore.value ? 1 : 0),
-          itemBuilder: (context, index) {
-            // Loading indicator at the end
-            if (index >= controller.products.length) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(AppTheme.spacingMd),
-                  child: CircularProgressIndicator(),
+    return Column(
+      children: [
+        _buildFilterBar(),
+        Expanded(
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (notification) {
+              if (notification is ScrollEndNotification) {
+                final metrics = notification.metrics;
+                if (metrics.pixels >= metrics.maxScrollExtent - 200) {
+                  controller.loadMoreProducts();
+                }
+              }
+              return false;
+            },
+            child: RefreshIndicator(
+              onRefresh: controller.refreshProducts,
+              color: AppTheme.primaryColor,
+              child: Obx(() => GridView.builder(
+                padding: const EdgeInsets.all(12),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.62,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
                 ),
-              );
-            }
-            
-            final product = controller.products[index];
-            final wishlistController = Get.find<WishlistController>();
-            return Obx(() => ProductCard(
-              productId: product.id,
-              name: product.name,
-              imageUrl: product.imageUrl,
-              mrp: product.mrpValue,
-              sellingPrice: product.sellingPriceValue,
-              inStock: product.inStock,
-              discountPercent: product.discountPercent,
-              description: product.description,
-              heroTagPrefix: 'products',
-              onTap: () => controller.goToProductDetail(product),
-              onAddToCart: () {
-                final cartController = Get.find<CartController>();
-                cartController.addToCart(product.toProductItem());
-              },
-              // Wishlist functionality
-              showFavorite: true,
-              isFavorite: wishlistController.isInWishlist(product.id),
-              onFavorite: () => wishlistController.toggleWishlist(product.toProductItem()),
-            ));
-          },
-        )),
-      ),
+                itemCount: controller.products.length + (controller.hasMore.value ? 1 : 0),
+                itemBuilder: (context, index) {
+                  // Loading indicator at the end
+                  if (index >= controller.products.length) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: AppTheme.primaryColor,
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+                  
+                  final product = controller.products[index];
+                  final wishlistController = Get.find<WishlistController>();
+                  
+                  return Obx(() => ProductCard(
+                    productId: product.id,
+                    name: product.name,
+                    imageUrl: product.imageUrl,
+                    mrp: product.mrpValue,
+                    sellingPrice: product.sellingPriceValue,
+                    inStock: product.inStock,
+                    discountPercent: product.discountPercent,
+                    description: product.description,
+                    heroTagPrefix: 'products',
+                    onTap: () => controller.goToProductDetail(product),
+                    onAddToCart: () {
+                      final cartController = Get.find<CartController>();
+                      cartController.addToCart(product.toProductItem());
+                    },
+                    showFavorite: true,
+                    isFavorite: wishlistController.isInWishlist(product.id),
+                    onFavorite: () => wishlistController.toggleWishlist(product.toProductItem()),
+                  ));
+                },
+              )),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
