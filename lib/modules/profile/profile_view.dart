@@ -28,6 +28,16 @@ class ProfileView extends GetView<ProfileController> {
     return Scaffold(
       appBar: DynamicAppBar(
         title: 'Profile',
+        useGradient: true,
+        titleWidget: const Text(
+          'Profile',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.5,
+          ),
+        ),
         actions: [
           Obx(() => controller.isEditMode.value
               ? IconButton(
@@ -404,13 +414,6 @@ class ProfileView extends GetView<ProfileController> {
             title: 'Change Password',
             subtitle: 'Update your password',
             onTap: controller.showChangePasswordDialog,
-          ),
-          const Divider(height: 1),
-          _buildSettingsTile(
-            icon: Icons.help_outline,
-            title: 'Help & Support',
-            subtitle: 'Get help or contact us',
-            onTap: () => Get.toNamed('/support'),
           ),
           const Divider(height: 1),
           _buildSettingsTile(

@@ -122,13 +122,8 @@ class HomeView extends GetView<HomeController> {
                   ),
                 ),
                 const Spacer(),
-                // Notification icon
-                _buildAppBarIcon(
-                  icon: Icons.notifications_outlined,
-                  onTap: () {},
-                ),
-                // Cart icon with badge
-                _buildCartIcon(),
+                // Notification icon - REMOVED
+                // Cart icon - REMOVED
               ],
             ),
           ),

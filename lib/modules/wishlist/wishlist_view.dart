@@ -46,7 +46,7 @@ class WishlistView extends GetView<WishlistController> {
   /// Premium gradient AppBar
   Widget _buildAppBar(bool innerBoxIsScrolled) {
     return SliverAppBar(
-      expandedHeight: 120,
+      expandedHeight: 60,
       floating: false,
       pinned: true,
       elevation: 0,
@@ -57,47 +57,13 @@ class WishlistView extends GetView<WishlistController> {
         ),
         child: FlexibleSpaceBar(
           titlePadding: const EdgeInsets.only(left: 56, bottom: 16, right: 16),
-          title: Row(
-            children: [
-              const Icon(
-                Icons.favorite_rounded,
-                color: Colors.white,
-                size: 22,
-              ),
-              const SizedBox(width: AppTheme.spacingSm),
-              const Text(
-                'My Wishlist',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 18,
-                ),
-              ),
-              const Spacer(),
-              // Item count badge
-              Obx(() => Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                ),
-                child: Text(
-                  '${controller.wishlistCount} items',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              )),
-            ],
-          ),
-          background: Container(
-            decoration: BoxDecoration(
-              gradient: AppTheme.primaryGradient,
+          title: const Text(
+            'My Wishlist',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 22,
+              letterSpacing: -0.5,
             ),
           ),
         ),
@@ -441,29 +407,27 @@ class WishlistView extends GetView<WishlistController> {
       onDismissed: (direction) {
         controller.removeFromWishlist(product.id);
       },
-      child: Stack(
-        children: [
-          ProductCard(
-            productId: product.id,
-            name: product.name,
-            imageUrl: product.imageUrl,
-            mrp: product.mrpValue,
-            sellingPrice: product.sellingPriceValue,
-            inStock: product.inStock,
-            discountPercent: product.discountPercent,
-            description: product.description,
-            variant: ProductCardVariant.grid,
-            onTap: () => _navigateToProductDetail(product.id),
-            onFavorite: () => controller.removeFromWishlist(product.id),
-            isFavorite: true,
-            showFavorite: true,
-            showAddToCart: true,
-            heroTagPrefix: 'wishlist',
-            onAddToCart: () => _moveToCart(product),
-          ),
-          
-          // Move to cart overlay button
-          Positioned(
+      child: ProductCard(
+        productId: product.id,
+        name: product.name,
+        imageUrl: product.imageUrl,
+        mrp: product.mrpValue,
+        sellingPrice: product.sellingPriceValue,
+        inStock: product.inStock,
+        discountPercent: product.discountPercent,
+        description: product.description,
+        variant: ProductCardVariant.grid,
+        onTap: () => _navigateToProductDetail(product.id),
+        onFavorite: () => controller.removeFromWishlist(product.id),
+        isFavorite: true,
+        showFavorite: true,
+        showAddToCart: false,
+        heroTagPrefix: 'wishlist',
+        onAddToCart: () => _moveToCart(product),
+      ),
+
+      // Move to cart overlay button
+      /*Positioned(
             bottom: 50,
             left: 8,
             right: 8,
@@ -500,9 +464,7 @@ class WishlistView extends GetView<WishlistController> {
                 ),
               ),
             ),
-          ),
-        ],
-      ),
+          ),*/
     );
   }
 

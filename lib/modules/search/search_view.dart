@@ -566,7 +566,7 @@ class SearchView extends GetView<search.SearchController> {
   
   /// Empty state with premium styling
   Widget _buildEmptyState() {
-    return Center(
+    return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(AppTheme.spacingXl),
         child: Column(

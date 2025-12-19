@@ -51,26 +51,22 @@ class ProductDetailView extends GetView<ProductDetailController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Product image section
+                      _buildProductImageSection(product),
+                      
                       // Product info card
                       _buildProductInfoCard(product),
                       
                       const SizedBox(height: AppTheme.spacingSm),
                       
-                      // Delivery info banner
-                      _buildDeliveryBanner(),
-                      
-                      const SizedBox(height: AppTheme.spacingSm),
-                      
-                      // Description section
-                      if (product.description.isNotEmpty)
-                        _buildDescriptionSection(product),
+                      // Delivery info banner - REMOVED
+                      // Description section - REMOVED
                       
                       // Quantity selector
                       if (product.inStock)
                         _buildQuantitySection(),
                       
-                      // Highlights/Features placeholder
-                      _buildHighlightsSection(),
+                      // Highlights/Features placeholder - REMOVED
                       
                       // Spacer for bottom bar
                       const SizedBox(height: 100),
@@ -254,141 +250,128 @@ class ProductDetailView extends GetView<ProductDetailController> {
   /// Premium image gallery with overlay actions
   Widget _buildImageGallery(dynamic product) {
     return SliverAppBar(
-      expandedHeight: 350,
+      expandedHeight: 60,
       pinned: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.primaryColor,
       elevation: 0,
       
       // Back button with premium styling
-      leading: Container(
-        margin: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.4),
-          shape: BoxShape.circle,
-          boxShadow: AppTheme.shadowSm,
+      leading: IconButton(
+        icon: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Icon(
+            Icons.arrow_back_rounded,
+            color: Colors.white,
+            size: 20,
+          ),
         ),
-        child: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-          onPressed: () => Get.back(),
-        ),
+        onPressed: () => Get.back(),
       ),
       
       // Action buttons with premium styling
       actions: [
-        // Share button
-        Container(
-          margin: const EdgeInsets.only(right: 4),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.4),
-            shape: BoxShape.circle,
-            boxShadow: AppTheme.shadowSm,
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.share_rounded, color: Colors.white),
-            onPressed: () => _shareProduct(product),
-          ),
-        ),
-        
         // Favorite button with animation
-        Container(
-          margin: const EdgeInsets.only(right: 8),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.4),
-            shape: BoxShape.circle,
-            boxShadow: AppTheme.shadowSm,
-          ),
-          child: Obx(() {
-            final wishlistController = Get.find<WishlistController>();
-            final isFavorite = wishlistController.isInWishlist(product.id);
-            return IconButton(
-              icon: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                child: Icon(
-                  isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                  key: ValueKey(isFavorite),
-                  color: isFavorite ? AppTheme.errorColor : Colors.white,
-                ),
-              ),
-              onPressed: () => wishlistController.toggleWishlist(product),
-            );
-          }),
-        ),
+        Obx(() {
+          final wishlistController = Get.find<WishlistController>();
+          final isFavorite = wishlistController.isInWishlist(product.id);
+          return IconButton(
+            icon: Icon(
+              isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+              color: isFavorite ? AppTheme.errorColor : Colors.white,
+            ),
+            onPressed: () => wishlistController.toggleWishlist(product),
+          );
+        }),
       ],
       
-      flexibleSpace: FlexibleSpaceBar(
-        background: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Product image with hero animation
-            Hero(
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: AppTheme.primaryGradient,
+        ),
+        child: FlexibleSpaceBar(
+          titlePadding: const EdgeInsets.only(left: 56, bottom: 16, right: 56),
+          title: Text(
+            'Product Details',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.5,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+  
+  /// Product image section with hero animation and discount badge
+  Widget _buildProductImageSection(dynamic product) {
+    return Container(
+      height: 300,
+      margin: const EdgeInsets.all(AppTheme.spacingMd),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        boxShadow: AppTheme.shadowMd,
+      ),
+      child: Stack(
+        children: [
+          // Product image with hero animation
+          Center(
+            child: Hero(
               tag: 'products_${product.id}',
               child: product.imageUrl != null
                   ? Image.network(
                       product.imageUrl!,
                       fit: BoxFit.contain,
+                      height: 280,
                       errorBuilder: (_, __, ___) => _buildImagePlaceholder(),
                     )
                   : _buildImagePlaceholder(),
             ),
-            
-            // Gradient overlay at bottom for better text visibility
+          ),
+          
+          // Discount badge
+          if (product.hasDiscount)
             Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: 80,
+              top: 16,
+              left: 16,
               child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.3),
-                    ],
-                  ),
+                  gradient: AppTheme.saleGradient,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                  boxShadow: AppTheme.shadowMd,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.local_offer_rounded,
+                      color: Colors.white,
+                      size: 14,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${product.discountPercent.toStringAsFixed(0)}% OFF',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            
-            // Discount badge
-            if (product.hasDiscount)
-              Positioned(
-                top: 80,
-                left: 16,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: AppTheme.saleGradient,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                    boxShadow: AppTheme.shadowMd,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.local_offer_rounded,
-                        color: Colors.white,
-                        size: 14,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${product.discountPercent.toStringAsFixed(0)}% OFF',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -1052,58 +1035,7 @@ class ProductDetailView extends GetView<ProductDetailController> {
                 ),
               )),
             ),
-            
-            const SizedBox(width: AppTheme.spacingMd),
-            
-            // Buy Now button
-            Expanded(
-              child: Obx(() => Container(
-                decoration: BoxDecoration(
-                  gradient: AppTheme.saleGradient,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  boxShadow: AppTheme.shadowMd,
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: controller.isAddingToCart.value ? null : controller.buyNow,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      child: controller.isAddingToCart.value
-                          ? const Center(
-                              child: SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                ),
-                              ),
-                            )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.flash_on_rounded,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: AppTheme.spacingXs),
-                                Text(
-                                  'Buy Now',
-                                  style: AppTheme.titleSmall.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
-                            ),
-                    ),
-                  ),
-                ),
-              )),
-            ),
+
           ],
         ),
       ),

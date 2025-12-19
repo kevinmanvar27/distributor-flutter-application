@@ -83,7 +83,7 @@ class ProductCard extends StatelessWidget {
           children: [
             // Image section with badges
             AspectRatio(
-              aspectRatio: 0.9,
+              aspectRatio: 1.0, // Square image for better fit
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -94,47 +94,51 @@ class ProductCard extends StatelessWidget {
                 ],
               ),
             ),
-            // Info section
-            Padding(
-              padding: const EdgeInsets.all(AppTheme.spacingSm),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Brand name (if available)
-                  if (brand != null && brand!.isNotEmpty)
+            // Info section - Expanded to fill remaining space
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(AppTheme.spacingSm),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Brand name (if available)
+                    if (brand != null && brand!.isNotEmpty)
+                      Text(
+                        brand!,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                          color: AppTheme.textSecondary,
+                          letterSpacing: 0.3,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    if (brand != null && brand!.isNotEmpty)
+                      const SizedBox(height: 2),
+                    // Product name
                     Text(
-                      brand!,
-                      style: TextStyle(
-                        fontSize: 10,
+                      name,
+                      style: const TextStyle(
+                        fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: AppTheme.textSecondary,
-                        letterSpacing: 0.3,
+                        color: AppTheme.textPrimary,
+                        height: 1.2,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  const SizedBox(height: 2),
-                  // Product name
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: AppTheme.textPrimary,
-                      height: 1.2,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 6),
-                  // Rating (if available)
-                  if (rating != null)
-                    _buildRatingBadge(),
-                  if (rating != null)
-                    const SizedBox(height: 6),
-                  // Price section
-                  _buildPremiumPriceRow(),
-                ],
+                    // Spacer pushes price to bottom
+                    const Spacer(),
+                    // Rating (if available)
+                    if (rating != null)
+                      _buildRatingBadge(),
+                    if (rating != null)
+                      const SizedBox(height: 4),
+                    // Price section
+                    _buildPremiumPriceRow(),
+                  ],
+                ),
               ),
             ),
           ],

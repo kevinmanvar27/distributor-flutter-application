@@ -92,12 +92,13 @@ class WishlistController extends GetxController {
     wishlistItems.add(product);
     _saveWishlistToStorage();
     
-    _showSnackbar(
-      'Added to Wishlist',
-      '${product.name} has been added to your wishlist',
-      icon: Icons.favorite,
-      iconColor: Colors.red,
-    );
+    // Notification removed as per user request
+    // _showSnackbar(
+    //   'Added to Wishlist',
+    //   '${product.name} has been added to your wishlist',
+    //   icon: Icons.favorite,
+    //   iconColor: Colors.red,
+    // );
   }
   
   /// Remove a product from the wishlist
@@ -107,11 +108,12 @@ class WishlistController extends GetxController {
       wishlistItems.removeWhere((item) => item.id == productId);
       _saveWishlistToStorage();
       
-      _showSnackbar(
-        'Removed from Wishlist',
-        '${product.name} has been removed from your wishlist',
-        icon: Icons.favorite_border,
-      );
+      // Notification removed as per user request
+      // _showSnackbar(
+      //   'Removed from Wishlist',
+      //   '${product.name} has been removed from your wishlist',
+      //   icon: Icons.favorite_border,
+      // );
     }
   }
   

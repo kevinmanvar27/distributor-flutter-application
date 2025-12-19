@@ -16,8 +16,15 @@ class SubcategoriesController extends GetxController {
   final RxInt categoryId = 0.obs;
   final RxString categoryName = ''.obs;
   
+  // Selected subcategory for filtering
+  final Rx<Data?> selectedSubcategory = Rx<Data?>(null);
+  
   // Subcategories list - using Data from catagories.dart
   final RxList<Data> subcategories = <Data>[].obs;
+  
+  // Products list - using Product from catagories.dart
+  final RxList<Product> allProducts = <Product>[].obs;
+  final RxList<Product> filteredProducts = <Product>[].obs;
   
   // State
   final RxBool isLoading = false.obs;
@@ -43,7 +50,7 @@ class SubcategoriesController extends GetxController {
     }
   }
   
-  /// Load subcategories from /categories/{id}
+  /// Load subcategories and products from /categories/{id}
   Future<void> loadSubcategories() async {
     if (categoryId.value == 0) return;
     
@@ -60,12 +67,26 @@ class SubcategoriesController extends GetxController {
       if (response.statusCode == 200 && response.data != null) {
         final result = Categories.fromJson(response.data);
         
-        if (result.success && result.data.subCategories != null) {
-          subcategories.assignAll(result.data.subCategories!);
-          debugPrint('SubcategoriesController: Loaded ${subcategories.length} subcategories');
+        if (result.success) {
+          // Load subcategories
+          if (result.data.subCategories != null) {
+            subcategories.assignAll(result.data.subCategories!);
+            debugPrint('SubcategoriesController: Loaded ${subcategories.length} subcategories');
+          }
+          
+          // Load products
+          if (result.data.products != null) {
+            allProducts.assignAll(result.data.products!);
+            debugPrint('SubcategoriesController: Loaded ${allProducts.length} products');
+            
+            // Initially show all products
+            filteredProducts.assignAll(allProducts);
+          }
         } else {
           subcategories.clear();
-          debugPrint('SubcategoriesController: No subcategories found');
+          allProducts.clear();
+          filteredProducts.clear();
+          debugPrint('SubcategoriesController: No data found');
         }
       } else {
         throw Exception('Failed to load: ${response.statusCode}');
@@ -77,6 +98,31 @@ class SubcategoriesController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+  
+  /// Filter products by selected subcategory
+  void selectSubcategory(Data? subcategory) {
+    selectedSubcategory.value = subcategory;
+    
+    if (subcategory == null) {
+      // Show all products
+      filteredProducts.assignAll(allProducts);
+      debugPrint('SubcategoriesController: Showing all ${allProducts.length} products');
+    } else {
+      // Filter products by subcategory
+      final filtered = allProducts.where((product) {
+        return product.belongsToSubcategory(categoryId.value, subcategory.id);
+      }).toList();
+      
+      filteredProducts.assignAll(filtered);
+      debugPrint('SubcategoriesController: Filtered to ${filtered.length} products for subcategory "${subcategory.name}"');
+    }
+  }
+  
+  /// Navigate to product detail
+  void onProductTap(Product product) {
+    debugPrint('SubcategoriesController: Tapped "${product.name}" (ID: ${product.id})');
+    Get.toNamed('/product/${product.id}', arguments: product);
   }
   
   /// Navigate to products screen when subcategory is tapped

@@ -76,8 +76,7 @@ class ProductsView extends GetView<ProductsController> {
                         ),
                       ),
                       const Spacer(),
-                      // Cart button with badge
-                      _buildCartButton(),
+                      // Cart button - REMOVED
                     ],
                   ),
                 ],

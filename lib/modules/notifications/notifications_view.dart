@@ -59,20 +59,12 @@ class NotificationsView extends GetView<NotificationsController> {
 
   Widget _buildSliverAppBar() {
     return SliverAppBar(
-      expandedHeight: 130,
+      expandedHeight: 60,
       floating: false,
       pinned: true,
       elevation: 0,
-      backgroundColor: AppTheme.dynamicPrimaryColor,
       leading: IconButton(
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-          ),
-          child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-        ),
+        icon: const Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () => Get.back(),
       ),
       actions: [
@@ -80,104 +72,33 @@ class NotificationsView extends GetView<NotificationsController> {
         Obx(() => controller.hasUnread
             ? Container(
                 margin: const EdgeInsets.only(right: AppTheme.spacingSm),
-                child: IconButton(
-                  icon: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                    ),
-                    child: const Icon(Icons.done_all, color: Colors.white, size: 20),
-                  ),
+                child: TextButton.icon(
                   onPressed: controller.markAllAsRead,
-                  tooltip: 'Mark all as read',
+                  icon: const Icon(Icons.done_all, color: Colors.white, size: 18),
+                  label: Text(
+                    'Mark All Read',
+                    style: AppTheme.bodySmall.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               )
             : const SizedBox.shrink()),
       ],
       flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppTheme.dynamicPrimaryColor,
-                AppTheme.dynamicPrimaryColor.withValues(alpha: 0.8),
-                AppTheme.dynamicSecondaryColor.withValues(alpha: 0.6),
-              ],
-            ),
+        titlePadding: const EdgeInsets.only(left: 56, bottom: 16),
+        title: Text(
+          'Notifications',
+          style: AppTheme.titleLarge.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
           ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                        ),
-                        child: const Icon(
-                          Icons.notifications_outlined,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
-                      const SizedBox(width: AppTheme.spacingMd),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Notifications',
-                              style: AppTheme.headingMedium.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Obx(() => Text(
-                              controller.unreadCount.value > 0
-                                  ? '${controller.unreadCount.value} unread notifications'
-                                  : 'All caught up!',
-                              style: AppTheme.bodySmall.copyWith(
-                                color: Colors.white.withValues(alpha: 0.8),
-                              ),
-                            )),
-                          ],
-                        ),
-                      ),
-                      // Unread badge
-                      Obx(() => controller.unreadCount.value > 0
-                          ? Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                '${controller.unreadCount.value}',
-                                style: AppTheme.labelMedium.copyWith(
-                                  color: AppTheme.dynamicPrimaryColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            )
-                          : const SizedBox.shrink()),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+        ),
+        background: Container(
+          decoration: const BoxDecoration(
+            gradient: AppTheme.primaryGradient,
           ),
         ),
       ),
@@ -353,13 +274,8 @@ class NotificationsView extends GetView<NotificationsController> {
       color: AppTheme.dynamicPrimaryColor,
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingSm),
-        itemCount: controller.filteredNotifications.length + 1,
+        itemCount: controller.filteredNotifications.length,
         itemBuilder: (context, index) {
-          // Load more indicator
-          if (index == controller.filteredNotifications.length) {
-            return _buildLoadMoreIndicator();
-          }
-
           final notification = controller.filteredNotifications[index];
           return _buildNotificationTile(notification);
         },
@@ -370,15 +286,16 @@ class NotificationsView extends GetView<NotificationsController> {
   Widget _buildNotificationTile(NotificationModel notification) {
     return Dismissible(
       key: Key(notification.id),
-      direction: DismissDirection.endToStart,
+      direction: DismissDirection.horizontal,
+      // Swipe right to mark as read (green background)
       background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: AppTheme.spacingLg),
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.only(left: AppTheme.spacingLg),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              AppTheme.successColor.withValues(alpha: 0.8),
               AppTheme.successColor,
+              AppTheme.successColor.withValues(alpha: 0.8),
             ],
           ),
         ),
@@ -398,9 +315,44 @@ class NotificationsView extends GetView<NotificationsController> {
           ],
         ),
       ),
+      // Swipe left to delete (red background)
+      secondaryBackground: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: AppTheme.spacingLg),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppTheme.errorColor.withValues(alpha: 0.8),
+              AppTheme.errorColor,
+            ],
+          ),
+        ),
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.delete_outline, color: Colors.white, size: 24),
+            SizedBox(height: 4),
+            Text(
+              'Delete',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
       confirmDismiss: (direction) async {
-        controller.markAsRead(notification);
-        return false; // Don't actually dismiss, just mark as read
+        if (direction == DismissDirection.startToEnd) {
+          // Swipe right - mark as read
+          controller.markAsRead(notification);
+          return false; // Don't dismiss, just mark as read
+        } else {
+          // Swipe left - delete
+          controller.deleteNotification(notification);
+          return true; // Dismiss the item
+        }
       },
       child: InkWell(
         onTap: () => controller.markAsRead(notification),
@@ -571,47 +523,6 @@ class NotificationsView extends GetView<NotificationsController> {
         size: 22,
       ),
     );
-  }
-
-  Widget _buildLoadMoreIndicator() {
-    return Obx(() {
-      if (!controller.hasMorePages.value) {
-        return Padding(
-          padding: const EdgeInsets.all(AppTheme.spacingLg),
-          child: Center(
-            child: Text(
-              'No more notifications',
-              style: AppTheme.bodySmall.copyWith(
-                color: AppTheme.textTertiary,
-              ),
-            ),
-          ),
-        );
-      }
-
-      if (controller.isLoadingMore.value) {
-        return Padding(
-          padding: const EdgeInsets.all(AppTheme.spacingLg),
-          child: Center(
-            child: SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.dynamicPrimaryColor),
-              ),
-            ),
-          ),
-        );
-      }
-
-      // Trigger load more when this widget becomes visible
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        controller.loadMore();
-      });
-
-      return const SizedBox(height: AppTheme.spacingLg);
-    });
   }
 
   // ─────────────────────────────────────────────────────────────────────────────

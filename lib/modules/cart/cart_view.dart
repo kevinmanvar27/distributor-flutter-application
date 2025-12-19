@@ -57,7 +57,7 @@ class CartView extends GetView<CartController> {
 
   Widget _buildPremiumAppBar(BuildContext context) {
     return SliverAppBar(
-      expandedHeight: 100,
+      expandedHeight: 60,
       floating: false,
       pinned: true,
       elevation: 0,
@@ -402,8 +402,6 @@ class CartView extends GetView<CartController> {
         physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           children: [
-            // Delivery info banner
-            _buildDeliveryBanner(),
             // Cart items list
             ListView.builder(
               shrinkWrap: true,
@@ -424,72 +422,7 @@ class CartView extends GetView<CartController> {
     );
   }
 
-  Widget _buildDeliveryBanner() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppTheme.successColor.withValues(alpha: 0.1),
-            AppTheme.successColor.withValues(alpha: 0.05),
-          ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: AppTheme.successColor.withValues(alpha: 0.3),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppTheme.successColor.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.local_shipping_rounded,
-              color: AppTheme.successColor,
-              size: 18,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Free Delivery',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.successColor,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'On orders above ₹499',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppTheme.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(
-            Icons.check_circle_rounded,
-            color: AppTheme.successColor,
-            size: 20,
-          ),
-        ],
-      ),
-    );
-  }
+
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Cart Item Card - Premium Design
