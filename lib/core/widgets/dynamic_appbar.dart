@@ -62,7 +62,7 @@ class DynamicAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             )
           : null),
-      centerTitle: centerTitle,
+      // centerTitle: centerTitle,
       backgroundColor: useGradient ? Colors.transparent : bgColor,
       foregroundColor: fgColor,
       elevation: useGradient ? 0 : elevation,
@@ -91,7 +91,7 @@ class DynamicAppBar extends StatelessWidget implements PreferredSizeWidget {
     
     if (useGradient) {
       return Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: AppTheme.primaryGradient,
         ),
         child: appBar,
@@ -231,7 +231,7 @@ class _SearchAppBarState extends State<SearchAppBar> {
     
     if (widget.useGradient) {
       return Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: AppTheme.primaryGradient,
         ),
         child: appBar,
@@ -275,26 +275,26 @@ class DynamicSliverAppBar extends StatelessWidget {
       backgroundColor: AppTheme.primaryColor,
       foregroundColor: Colors.white,
       elevation: 0,
-      flexibleSpace: FlexibleSpaceBar(
-        title: Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.2,
-          ),
+      // Fixed title that doesn't scale
+      title: Text(
+        title,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 18, // Standardized to 18px
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.2,
         ),
-        background: useGradient
-            ? Container(
-                decoration: const BoxDecoration(
-                  gradient: AppTheme.primaryGradient,
-                ),
-                child: flexibleSpace,
-              )
-            : flexibleSpace,
-        centerTitle: true,
       ),
+      centerTitle: true,
+      // FlexibleSpace only for background decoration
+      flexibleSpace: useGradient
+          ? Container(
+              decoration: BoxDecoration(
+                gradient: AppTheme.primaryGradient,
+              ),
+              child: flexibleSpace,
+            )
+          : flexibleSpace,
       actions: actions,
     );
   }

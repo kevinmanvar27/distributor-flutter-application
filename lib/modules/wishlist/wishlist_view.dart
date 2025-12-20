@@ -126,7 +126,7 @@ class WishlistView extends GetView<WishlistController> {
                 shape: BoxShape.circle,
                 boxShadow: AppTheme.shadowLg,
               ),
-              child: const CircularProgressIndicator(
+              child: CircularProgressIndicator(
                 strokeWidth: 3,
                 valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
               ),
@@ -350,7 +350,7 @@ class WishlistView extends GetView<WishlistController> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.add_shopping_cart_rounded,
                       size: 16,
                       color: AppTheme.primaryColor,

@@ -29,15 +29,6 @@ class ProfileView extends GetView<ProfileController> {
       appBar: DynamicAppBar(
         title: 'Profile',
         useGradient: true,
-        titleWidget: const Text(
-          'Profile',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.5,
-          ),
-        ),
         actions: [
           Obx(() => controller.isEditMode.value
               ? IconButton(
@@ -408,6 +399,13 @@ class ProfileView extends GetView<ProfileController> {
                   : null,
             );
           }),
+          const Divider(height: 1),
+          _buildSettingsTile(
+            icon: Icons.receipt_long_outlined,
+            title: 'My Invoices',
+            subtitle: 'View your order invoices',
+            onTap: () => Get.toNamed(Routes.invoices),
+          ),
           const Divider(height: 1),
           _buildSettingsTile(
             icon: Icons.lock_outline,

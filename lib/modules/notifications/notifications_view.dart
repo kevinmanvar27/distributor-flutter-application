@@ -97,7 +97,7 @@ class NotificationsView extends GetView<NotificationsController> {
           ),
         ),
         background: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: AppTheme.primaryGradient,
           ),
         ),

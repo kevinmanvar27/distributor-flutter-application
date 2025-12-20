@@ -664,11 +664,8 @@ class CartController extends GetxController {
           invoiceTotal: invoiceTotal,
         );
         
-        // 8. Clear cart from database for Approved status only (COD/Payment flows)
-        // Draft invoices keep the cart intact
-        if (!isDirectInvoice) {
-          await _clearCartFromDatabase();
-        }
+        // 8. Clear cart from database for both Draft and Approved invoices
+        await _clearCartFromDatabase();
         
         // 9. Navigate to Invoice screen with data
         Get.toNamed(Routes.invoice, arguments: invoiceResponse);

@@ -436,7 +436,7 @@ class _RegisterViewState extends State<RegisterView> {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
             color: AppTheme.textPrimary,
@@ -527,7 +527,7 @@ class _RegisterViewState extends State<RegisterView> {
       onFieldSubmitted: (_) {
         FocusScope.of(context).requestFocus(_emailFocusNode);
       },
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 15,
         fontWeight: FontWeight.w500,
         color: AppTheme.textPrimary,
@@ -549,7 +549,7 @@ class _RegisterViewState extends State<RegisterView> {
       onFieldSubmitted: (_) {
         FocusScope.of(context).requestFocus(_phoneFocusNode);
       },
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 15,
         fontWeight: FontWeight.w500,
         color: AppTheme.textPrimary,
@@ -581,7 +581,7 @@ class _RegisterViewState extends State<RegisterView> {
       onFieldSubmitted: (_) {
         FocusScope.of(context).requestFocus(_passwordFocusNode);
       },
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 15,
         fontWeight: FontWeight.w500,
         color: AppTheme.textPrimary,
@@ -606,7 +606,7 @@ class _RegisterViewState extends State<RegisterView> {
           onFieldSubmitted: (_) {
             FocusScope.of(context).requestFocus(_confirmPasswordFocusNode);
           },
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w500,
             color: AppTheme.textPrimary,
@@ -647,7 +647,7 @@ class _RegisterViewState extends State<RegisterView> {
             return Validators.password(value);
           },
           onFieldSubmitted: (_) => _handleRegister(),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w500,
             color: AppTheme.textPrimary,

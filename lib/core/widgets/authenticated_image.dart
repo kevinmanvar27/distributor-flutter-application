@@ -4,6 +4,10 @@
 // Required for protected resources like user avatars
 // Uses CachedNetworkImage with Bearer token from StorageService
 
+import 'dart:ui';
+import 'package:http/http.dart' as http;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:get/get.dart';
@@ -71,14 +75,19 @@ class AuthenticatedImageProvider extends ImageProvider<AuthenticatedImageProvide
       final storageService = Get.find<StorageService>();
       final token = storageService.getToken();
 
-      // Use Dio or http to fetch with headers
-      final response = await Get.find<StorageService>().fetchImageWithAuth(imageUrl, token);
+      // Fetch image with authentication headers using http package
+      final headers = <String, String>{};
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
       
-      if (response.isEmpty) {
-        throw Exception('Failed to load image');
+      final response = await http.get(Uri.parse(imageUrl), headers: headers);
+      
+      if (response.statusCode != 200 || response.bodyBytes.isEmpty) {
+        throw Exception('Failed to load image: HTTP ${response.statusCode}');
       }
 
-      final buffer = await ImmutableBuffer.fromUint8List(response);
+      final buffer = await ImmutableBuffer.fromUint8List(response.bodyBytes);
       return decode(buffer);
     } catch (e) {
       throw Exception('Failed to load image: $e');

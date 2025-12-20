@@ -21,16 +21,19 @@ class InvoiceController extends GetxController {
   // State
   // ─────────────────────────────────────────────────────────────────────────────
 
-  late final GenerateInvoice invoiceResponse;
+  final Rxn<GenerateInvoice> _invoiceResponse = Rxn<GenerateInvoice>();
+  final RxBool isLoading = true.obs;
+  final RxBool hasError = false.obs;
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Getters
   // ─────────────────────────────────────────────────────────────────────────────
 
-  Invoice get invoice => invoiceResponse.data.invoice;
-  InvoiceData get invoiceData => invoiceResponse.data.invoiceData;
-  Customer get customer => invoiceData.customer;
-  List<CartItem> get items => invoiceData.cartItems;
+  GenerateInvoice? get invoiceResponse => _invoiceResponse.value;
+  Invoice? get invoice => _invoiceResponse.value?.data.invoice;
+  InvoiceData? get invoiceData => _invoiceResponse.value?.data.invoiceData;
+  Customer? get customer => invoiceData?.customer;
+  List<CartItem> get items => invoiceData?.cartItems ?? [];
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Lifecycle
@@ -39,20 +42,36 @@ class InvoiceController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // Get invoice data from arguments
-    final args = Get.arguments;
-    if (args is GenerateInvoice) {
-      invoiceResponse = args;
-    } else {
-      // Handle error - no invoice data
-      Get.back();
-      Get.snackbar(
-        'Error',
-        'No invoice data available',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppTheme.errorColor.withValues(alpha: 0.9),
-        colorText: Colors.white,
-      );
+    _loadInvoiceData();
+  }
+
+  void _loadInvoiceData() {
+    try {
+      // Get invoice data from arguments
+      final args = Get.arguments;
+      debugPrint('InvoiceController: Received arguments type: ${args.runtimeType}');
+      
+      if (args is GenerateInvoice) {
+        _invoiceResponse.value = args;
+        debugPrint('InvoiceController: Invoice loaded - ${args.data.invoice.invoiceNumber}');
+        debugPrint('InvoiceController: Items count - ${args.data.invoiceData.cartItems.length}');
+        hasError.value = false;
+      } else {
+        debugPrint('InvoiceController: Invalid arguments received');
+        hasError.value = true;
+        Get.snackbar(
+          'Error',
+          'No invoice data available',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AppTheme.errorColor.withValues(alpha: 0.9),
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      debugPrint('InvoiceController: Error loading invoice - $e');
+      hasError.value = true;
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -100,6 +119,22 @@ class InvoiceController extends GetxController {
   // ─────────────────────────────────────────────────────────────────────────────
 
   void downloadPdf() async {
+    // Early return if data is not available
+    final currentInvoice = invoice;
+    final currentInvoiceData = invoiceData;
+    final currentCustomer = customer;
+    
+    if (currentInvoice == null || currentInvoiceData == null || currentCustomer == null) {
+      Get.snackbar(
+        'Error',
+        'Invoice data not available',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppTheme.errorColor.withValues(alpha: 0.9),
+        colorText: Colors.white,
+      );
+      return;
+    }
+    
     try {
       // Load a font that supports Unicode (including Rupee symbol)
       final font = await PdfGoogleFonts.notoSansRegular();
@@ -145,10 +180,10 @@ class InvoiceController extends GetxController {
                     pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        pw.Text('Invoice #: ${invoice.invoiceNumber}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                        pw.Text('Invoice #: ${currentInvoice.invoiceNumber}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                         pw.SizedBox(height: 4),
-                        pw.Text('Date: ${formatDate(invoiceData.invoiceDate)}'),
-                        pw.Text('Status: ${invoice.status}'),
+                        pw.Text('Date: ${formatDate(currentInvoiceData.invoiceDate)}'),
+                        pw.Text('Status: ${currentInvoice.status}'),
                       ],
                     ),
                     pw.Column(
@@ -156,10 +191,10 @@ class InvoiceController extends GetxController {
                       children: [
                         pw.Text('Bill To:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                         pw.SizedBox(height: 4),
-                        pw.Text(customer.name),
-                        pw.Text(customer.email),
-                        if (customer.address != null && customer.address.toString().isNotEmpty) 
-                          pw.Text(customer.address.toString()),
+                        pw.Text(currentCustomer.name),
+                        pw.Text(currentCustomer.email),
+                        if (currentCustomer.address != null && currentCustomer.address.toString().isNotEmpty) 
+                          pw.Text(currentCustomer.address.toString()),
                       ],
                     ),
                   ],
@@ -191,10 +226,10 @@ class InvoiceController extends GetxController {
                     pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.end,
                       children: [
-                        pw.Text('Subtotal: ${pdfCurrency(invoiceData.total)}'),
+                        pw.Text('Subtotal: ${pdfCurrency(currentInvoiceData.total)}'),
                         pw.SizedBox(height: 4),
                         pw.Text(
-                          'Total: ${pdfCurrencyFromString(invoice.totalAmount)}',
+                          'Total: ${pdfCurrencyFromString(currentInvoice.totalAmount)}',
                           style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14),
                         ),
                       ],
@@ -246,7 +281,7 @@ class InvoiceController extends GetxController {
 
   /// Go back to previous screen (cart for Draft, main for Approved)
   void goBack() {
-    final status = invoice.status.toLowerCase();
+    final status = invoice?.status.toLowerCase() ?? '';
     if (status == 'draft') {
       // For draft invoices, go back to cart
       Get.back();

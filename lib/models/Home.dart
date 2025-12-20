@@ -21,9 +21,9 @@ class Home {
   });
 
   factory Home.fromJson(Map<String, dynamic> json) => Home(
-    success: json["success"],
+    success: json["success"] ?? false,
     data: HomeData.fromJson(json["data"]),
-    message: json["message"],
+    message: json["message"] ?? "",
   );
 
   Map<String, dynamic> toJson() => {
@@ -55,13 +55,13 @@ class HomeData {
   });
 
   factory HomeData.fromJson(Map<String, dynamic> json) => HomeData(
-    categories: List<Category>.from(json["categories"].map((x) => Category.fromJson(x))),
-    featuredProducts: List<Product>.from(json["featured_products"].map((x) => Product.fromJson(x))),
-    latestProducts: List<Product>.from(json["latest_products"].map((x) => Product.fromJson(x))),
-    cartCount: json["cart_count"],
-    unreadNotificationsCount: json["unread_notifications_count"],
-    wishlistCount: json["wishlist_count"],
-    announcements: List<dynamic>.from(json["announcements"].map((x) => x)),
+    categories: json["categories"] != null ? List<Category>.from(json["categories"].map((x) => Category.fromJson(x))) : [],
+    featuredProducts: json["featured_products"] != null ? List<Product>.from(json["featured_products"].map((x) => Product.fromJson(x))) : [],
+    latestProducts: json["latest_products"] != null ? List<Product>.from(json["latest_products"].map((x) => Product.fromJson(x))) : [],
+    cartCount: json["cart_count"] ?? 0,
+    unreadNotificationsCount: json["unread_notifications_count"] ?? 0,
+    wishlistCount: json["wishlist_count"] ?? 0,
+    announcements: json["announcements"] != null ? List<dynamic>.from(json["announcements"].map((x) => x)) : [],
     branding: Branding.fromJson(json["branding"]),
   );
 
@@ -93,11 +93,11 @@ class Branding {
   });
 
   factory Branding.fromJson(Map<String, dynamic> json) => Branding(
-    brandName: json["brand_name"],
-    tagline: json["tagline"],
+    brandName: json["brand_name"] ?? "Distributor",
+    tagline: json["tagline"] ?? "",
     logoUrl: json["logo_url"],
-    primaryColor: json["primary_color"],
-    secondaryColor: json["secondary_color"],
+    primaryColor: json["primary_color"] ?? "#2196F3",
+    secondaryColor: json["secondary_color"] ?? "#FFC107",
   );
 
   Map<String, dynamic> toJson() => {
@@ -139,15 +139,15 @@ class Category {
   });
 
   factory Category.fromJson(Map<String, dynamic> json) => Category(
-    id: json["id"],
-    name: json["name"],
-    slug: json["slug"],
-    description: json["description"],
+    id: json["id"] ?? 0,
+    name: json["name"] ?? "",
+    slug: json["slug"] ?? "",
+    description: json["description"] ?? "",
     imageId: json["image_id"],
-    isActive: json["is_active"],
-    createdAt: DateTime.parse(json["created_at"]),
-    updatedAt: DateTime.parse(json["updated_at"]),
-    productCount: json["product_count"],
+    isActive: json["is_active"] ?? true,
+    createdAt: json["created_at"] != null ? DateTime.parse(json["created_at"]) : DateTime.now(),
+    updatedAt: json["updated_at"] != null ? DateTime.parse(json["updated_at"]) : DateTime.now(),
+    productCount: json["product_count"] ?? 0,
     image: json["image"] == null ? null : Image.fromJson(json["image"]),
     subCategories: json["sub_categories"] == null ? [] : List<Category>.from(json["sub_categories"]!.map((x) => Category.fromJson(x))),
     categoryId: json["category_id"],
@@ -194,14 +194,14 @@ class Image {
   String? get fullUrl => buildImageUrl(path);
 
   factory Image.fromJson(Map<String, dynamic> json) => Image(
-    id: json["id"],
-    name: json["name"],
-    fileName: json["file_name"],
-    mimeType: json["mime_type"],
-    path: json["path"],
-    size: json["size"],
-    createdAt: DateTime.parse(json["created_at"]),
-    updatedAt: DateTime.parse(json["updated_at"]),
+    id: json["id"] ?? 0,
+    name: json["name"] ?? "",
+    fileName: json["file_name"] ?? "",
+    mimeType: json["mime_type"] ?? "",
+    path: json["path"] ?? "",
+    size: json["size"] ?? 0,
+    createdAt: json["created_at"] != null ? DateTime.parse(json["created_at"]) : DateTime.now(),
+    updatedAt: json["updated_at"] != null ? DateTime.parse(json["updated_at"]) : DateTime.now(),
   );
 
   Map<String, dynamic> toJson() => {
@@ -260,24 +260,24 @@ class Product {
   });
 
   factory Product.fromJson(Map<String, dynamic> json) => Product(
-    id: json["id"],
-    name: json["name"],
-    slug: json["slug"],
-    description: json["description"],
-    mrp: json["mrp"],
-    sellingPrice: json["selling_price"],
-    inStock: json["in_stock"],
-    stockQuantity: json["stock_quantity"],
-    status: json["status"],
+    id: json["id"] ?? 0,
+    name: json["name"] ?? "",
+    slug: json["slug"] ?? "",
+    description: json["description"] ?? "",
+    mrp: json["mrp"] ?? "0",
+    sellingPrice: json["selling_price"] ?? "0",
+    inStock: json["in_stock"] ?? false,
+    stockQuantity: json["stock_quantity"] ?? 0,
+    status: json["status"] ?? "active",
     mainPhotoId: json["main_photo_id"],
-    productGallery: List<int>.from(json["product_gallery"].map((x) => x)),
+    productGallery: json["product_gallery"] != null ? List<int>.from(json["product_gallery"].map((x) => x)) : [],
     productCategories: json["product_categories"],
     metaTitle: json["meta_title"],
     metaDescription: json["meta_description"],
     metaKeywords: json["meta_keywords"],
-    createdAt: DateTime.parse(json["created_at"]),
-    updatedAt: DateTime.parse(json["updated_at"]),
-    discountedPrice: json["discounted_price"],
+    createdAt: json["created_at"] != null ? DateTime.parse(json["created_at"]) : DateTime.now(),
+    updatedAt: json["updated_at"] != null ? DateTime.parse(json["updated_at"]) : DateTime.now(),
+    discountedPrice: json["discounted_price"] ?? "0",
     mainPhoto: json["main_photo"] == null ? null : Image.fromJson(json["main_photo"]),
   );
 

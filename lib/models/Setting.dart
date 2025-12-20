@@ -72,23 +72,23 @@ class Data {
   });
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
-    primaryColor: json["primary_color"],
-    secondaryColor: json["secondary_color"],
-    accentColor: json["accent_color"],
-    backgroundColor: json["background_color"],
-    textColor: json["text_color"],
-    headerColor: json["header_color"],
-    footerColor: json["footer_color"],
-    primaryFont: json["primary_font"],
-    secondaryFont: json["secondary_font"],
-    fontSizeBase: json["font_size_base"],
-    darkModeEnabled: json["dark_mode_enabled"],
+    primaryColor: json["primary_color"]?.toString() ?? '#2874F0',
+    secondaryColor: json["secondary_color"]?.toString() ?? '#FF9F00',
+    accentColor: json["accent_color"]?.toString() ?? '#388E3C',
+    backgroundColor: json["background_color"]?.toString() ?? '#FFFFFF',
+    textColor: json["text_color"]?.toString() ?? '#212121',
+    headerColor: json["header_color"]?.toString() ?? '#2874F0',
+    footerColor: json["footer_color"]?.toString() ?? '#F5F5F5',
+    primaryFont: json["primary_font"]?.toString() ?? 'Roboto',
+    secondaryFont: json["secondary_font"]?.toString() ?? 'Roboto',
+    fontSizeBase: json["font_size_base"]?.toString() ?? '16',
+    darkModeEnabled: json["dark_mode_enabled"] ?? false,
     logoUrl: json["logo_url"],
     faviconUrl: json["favicon_url"],
     appIconUrl: json["app_icon_url"],
     splashScreenUrl: json["splash_screen_url"],
-    brandName: json["brand_name"],
-    tagline: json["tagline"],
+    brandName: json["brand_name"]?.toString() ?? 'Distributor',
+    tagline: json["tagline"]?.toString() ?? '',
   );
 
   Map<String, dynamic> toJson() => {

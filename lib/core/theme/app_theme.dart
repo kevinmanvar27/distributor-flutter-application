@@ -5,6 +5,7 @@
 // - Modern typography with Google Fonts
 // - Professional shadows and elevations
 // - Smooth animations
+// - Dynamic theming from API settings
 
 import 'package:flutter/material.dart';
 import '../../models/Setting.dart' as settings_model;
@@ -14,32 +15,79 @@ class AppTheme {
   AppTheme._();
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Colors - Premium Primary Palette (Flipkart Blue Style)
+  // Dynamic Theme State (From API Settings)
   // ─────────────────────────────────────────────────────────────────────────────
   
-  /// Primary brand color - Flipkart-style blue
-  static const Color primaryColor = Color(0xFF2874F0);
+  static Color? _dynamicPrimaryColor;
+  static Color? _dynamicSecondaryColor;
+  static Color? _dynamicAccentColor;
+  static Color? _dynamicBackgroundColor;
+  static Color? _dynamicTextColor;
+  static Color? _dynamicHeaderColor;
   
-  /// Primary color variants
-  static const Color primaryLight = Color(0xFF5B9BF5);
-  static const Color primaryDark = Color(0xFF1A5DC8);
-  static const Color primarySurface = Color(0xFFE8F1FD);
+  /// Update theme colors from API settings - called from splash
+  static void updateFromSettings(settings_model.Data settings) {
+    _dynamicPrimaryColor = _parseColor(settings.primaryColor);
+    _dynamicSecondaryColor = _parseColor(settings.secondaryColor);
+    _dynamicAccentColor = _parseColor(settings.accentColor);
+    _dynamicBackgroundColor = _parseColor(settings.backgroundColor);
+    _dynamicTextColor = _parseColor(settings.textColor);
+    _dynamicHeaderColor = _parseColor(settings.headerColor);
+  }
+
   
-  /// Secondary color - Premium gold/amber for accents
-  static const Color secondaryColor = Color(0xFFFF9F00);
-  static const Color secondaryLight = Color(0xFFFFBD4A);
-  static const Color secondaryDark = Color(0xFFE68A00);
-  
-  /// Accent color - For special highlights
-  static const Color accentColor = Color(0xFF388E3C);
-  static const Color accentLight = Color(0xFF4CAF50);
+  /// Parse hex color string to Color
+  static Color? _parseColor(String colorString) {
+    try {
+      String hex = colorString.replaceAll('#', '');
+      if (hex.length == 6) {
+        hex = 'FF$hex';
+      }
+      return Color(int.parse(hex, radix: 16));
+    } catch (e) {
+      return null;
+    }
+  }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Colors - Surface & Background (Premium)
+  // Colors - Premium Primary Palette (Dynamic with fallbacks)
   // ─────────────────────────────────────────────────────────────────────────────
   
-  /// Background color - Soft gray like Flipkart
-  static const Color backgroundColor = Color(0xFFF1F3F6);
+  /// Default primary brand color - Flipkart-style blue (fallback)
+  static const Color _defaultPrimaryColor = Color(0xFF2874F0);
+  
+  /// Primary brand color - Uses dynamic value from API if available
+  static Color get primaryColor => _dynamicPrimaryColor ?? _defaultPrimaryColor;
+  
+  /// Primary color variants (computed from primary)
+  static Color get primaryLight => Color.lerp(primaryColor, Colors.white, 0.3) ?? const Color(0xFF5B9BF5);
+  static Color get primaryDark => Color.lerp(primaryColor, Colors.black, 0.2) ?? const Color(0xFF1A5DC8);
+  static Color get primarySurface => primaryColor.withValues(alpha: 0.1);
+  
+  /// Default secondary color - Premium gold/amber for accents (fallback)
+  static const Color _defaultSecondaryColor = Color(0xFFFF9F00);
+  
+  /// Secondary color - Uses dynamic value from API if available
+  static Color get secondaryColor => _dynamicSecondaryColor ?? _defaultSecondaryColor;
+  static Color get secondaryLight => Color.lerp(secondaryColor, Colors.white, 0.3) ?? const Color(0xFFFFBD4A);
+  static Color get secondaryDark => Color.lerp(secondaryColor, Colors.black, 0.15) ?? const Color(0xFFE68A00);
+  
+  /// Default accent color - For special highlights (fallback)
+  static const Color _defaultAccentColor = Color(0xFF388E3C);
+  
+  /// Accent color - Uses dynamic value from API if available
+  static Color get accentColor => _dynamicAccentColor ?? _defaultAccentColor;
+  static Color get accentLight => Color.lerp(accentColor, Colors.white, 0.3) ?? const Color(0xFF4CAF50);
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Colors - Surface & Background (Dynamic with fallbacks)
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  /// Default background color - Soft gray like Flipkart (fallback)
+  static const Color _defaultBackgroundColor = Color(0xFFF1F3F6);
+  
+  /// Background color - Uses dynamic value from API if available
+  static Color get backgroundColor => _dynamicBackgroundColor ?? _defaultBackgroundColor;
   
   /// Surface color for cards
   static const Color surfaceColor = Color(0xFFFFFFFF);
@@ -61,11 +109,14 @@ class AppTheme {
   static const Color shimmerHighlight = Color(0xFFF5F5F5);
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Colors - Text (Premium)
+  // Colors - Text (Dynamic with fallbacks)
   // ─────────────────────────────────────────────────────────────────────────────
   
-  /// Primary text color
-  static const Color textPrimary = Color(0xFF212121);
+  /// Default primary text color (fallback)
+  static const Color _defaultTextPrimary = Color(0xFF212121);
+  
+  /// Primary text color - Uses dynamic value from API if available
+  static Color get textPrimary => _dynamicTextColor ?? _defaultTextPrimary;
   
   /// Secondary text color
   static const Color textSecondary = Color(0xFF757575);
@@ -80,7 +131,7 @@ class AppTheme {
   static const Color priceColor = Color(0xFF212121);
   
   /// Discount text color
-  static const Color discountColor = Color(0xFF388E3C);
+  static Color get discountColor => accentColor;
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Colors - Status (Premium)
@@ -103,12 +154,12 @@ class AppTheme {
   static const Color infoLight = Color(0xFFE3F2FD);
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Gradients (Premium)
+  // Gradients (Dynamic - uses current primary color)
   // ─────────────────────────────────────────────────────────────────────────────
   
-  /// Primary gradient for headers, buttons
-  static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF2874F0), Color(0xFF1A5DC8)],
+  /// Primary gradient for headers, buttons - uses dynamic primary color
+  static LinearGradient get primaryGradient => LinearGradient(
+    colors: [primaryColor, primaryDark],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -179,7 +230,7 @@ class AppTheme {
     fontWeight: FontWeight.w400,
     letterSpacing: -0.25,
     height: 1.12,
-    color: textPrimary,
+    color: _defaultTextPrimary,
   );
   
   /// Display medium - 45px
@@ -188,7 +239,7 @@ class AppTheme {
     fontWeight: FontWeight.w400,
     letterSpacing: 0,
     height: 1.16,
-    color: textPrimary,
+    color: _defaultTextPrimary,
   );
   
   /// Display small - 36px
@@ -197,7 +248,7 @@ class AppTheme {
     fontWeight: FontWeight.w400,
     letterSpacing: 0,
     height: 1.22,
-    color: textPrimary,
+    color: _defaultTextPrimary,
   );
 
   /// Headline large - 32px
@@ -206,7 +257,7 @@ class AppTheme {
     fontWeight: FontWeight.w700,
     letterSpacing: 0,
     height: 1.25,
-    color: textPrimary,
+    color: _defaultTextPrimary,
   );
   
   /// Headline medium - 28px
@@ -215,7 +266,7 @@ class AppTheme {
     fontWeight: FontWeight.w600,
     letterSpacing: 0,
     height: 1.29,
-    color: textPrimary,
+    color: _defaultTextPrimary,
   );
   
   /// Headline small - 24px
@@ -224,7 +275,7 @@ class AppTheme {
     fontWeight: FontWeight.w600,
     letterSpacing: 0,
     height: 1.33,
-    color: textPrimary,
+    color: _defaultTextPrimary,
   );
 
   /// Heading aliases
@@ -238,7 +289,7 @@ class AppTheme {
     fontWeight: FontWeight.w600,
     letterSpacing: 0,
     height: 1.27,
-    color: textPrimary,
+    color: _defaultTextPrimary,
   );
   
   /// Title medium - 16px
@@ -247,7 +298,7 @@ class AppTheme {
     fontWeight: FontWeight.w600,
     letterSpacing: 0.15,
     height: 1.5,
-    color: textPrimary,
+    color: _defaultTextPrimary,
   );
   
   /// Title small - 14px
@@ -256,7 +307,7 @@ class AppTheme {
     fontWeight: FontWeight.w600,
     letterSpacing: 0.1,
     height: 1.43,
-    color: textPrimary,
+    color: _defaultTextPrimary,
   );
 
   /// Body large - 16px
@@ -292,7 +343,7 @@ class AppTheme {
     fontWeight: FontWeight.w600,
     letterSpacing: 0.1,
     height: 1.43,
-    color: textPrimary,
+    color: _defaultTextPrimary,
   );
   
   /// Label medium - 12px
@@ -301,7 +352,7 @@ class AppTheme {
     fontWeight: FontWeight.w500,
     letterSpacing: 0.5,
     height: 1.33,
-    color: textPrimary,
+    color: _defaultTextPrimary,
   );
   
   /// Label small - 11px
@@ -310,7 +361,7 @@ class AppTheme {
     fontWeight: FontWeight.w500,
     letterSpacing: 0.5,
     height: 1.45,
-    color: textPrimary,
+    color: _defaultTextPrimary,
   );
   
   /// Price style - Bold for prices
@@ -331,8 +382,8 @@ class AppTheme {
     color: priceColor,
   );
   
-  /// Discount style
-  static const TextStyle discountStyle = TextStyle(
+  /// Discount style - uses dynamic accent color
+  static TextStyle get discountStyle => TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w600,
     letterSpacing: 0,
@@ -481,7 +532,7 @@ class AppTheme {
   /// Secondary button style
   static ButtonStyle get secondaryButtonStyle => OutlinedButton.styleFrom(
     foregroundColor: primaryColor,
-    side: const BorderSide(color: primaryColor, width: 1.5),
+    side: BorderSide(color: primaryColor, width: 1.5),
     padding: const EdgeInsets.symmetric(horizontal: spacingLg, vertical: spacingMd),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(radiusSm),
@@ -521,7 +572,7 @@ class AppTheme {
   static InputDecoration get searchInputDecoration => InputDecoration(
     hintText: 'Search for products, brands and more',
     hintStyle: bodyMedium.copyWith(color: textTertiary),
-    prefixIcon: const Icon(Icons.search, color: primaryColor),
+    prefixIcon: Icon(Icons.search, color: primaryColor),
     filled: true,
     fillColor: surfaceColor,
     contentPadding: const EdgeInsets.symmetric(horizontal: spacingMd, vertical: spacingSm),
@@ -535,7 +586,7 @@ class AppTheme {
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(radiusSm),
-      borderSide: const BorderSide(color: primaryColor, width: 1),
+      borderSide: BorderSide(color: primaryColor, width: 1),
     ),
   );
 
@@ -549,7 +600,7 @@ class AppTheme {
     brightness: Brightness.light,
     primaryColor: primaryColor,
     scaffoldBackgroundColor: backgroundColor,
-    colorScheme: const ColorScheme.light(
+    colorScheme: ColorScheme.light(
       primary: primaryColor,
       secondary: secondaryColor,
       surface: surfaceColor,
@@ -559,12 +610,12 @@ class AppTheme {
       onSurface: textPrimary,
       onError: Colors.white,
     ),
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       backgroundColor: primaryColor,
       foregroundColor: textOnPrimary,
       elevation: 0,
       centerTitle: false,
-      titleTextStyle: TextStyle(
+      titleTextStyle: const TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w600,
         color: textOnPrimary,
@@ -597,14 +648,14 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(radiusMd),
-        borderSide: const BorderSide(color: primaryColor, width: 2),
+        borderSide: BorderSide(color: primaryColor, width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(radiusMd),
         borderSide: const BorderSide(color: errorColor),
       ),
     ),
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: surfaceColor,
       selectedItemColor: primaryColor,
       unselectedItemColor: textSecondary,
@@ -629,31 +680,14 @@ class AppTheme {
   );
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Dynamic Theme (From Settings)
+  // Legacy Getters for Backwards Compatibility
   // ─────────────────────────────────────────────────────────────────────────────
   
-  static Color? _dynamicPrimaryColor;
-  static Color? _dynamicSecondaryColor;
+  /// Dynamic primary color getter (for backwards compatibility)
+  static Color get dynamicPrimaryColor => primaryColor;
   
-  static void updateFromSettings(settings_model.Data settings) {
-    _dynamicPrimaryColor = _parseColor(settings.primaryColor);
-    _dynamicSecondaryColor = _parseColor(settings.secondaryColor);
-  }
-  
-  static Color? _parseColor(String colorString) {
-    try {
-      String hex = colorString.replaceAll('#', '');
-      if (hex.length == 6) {
-        hex = 'FF$hex';
-      }
-      return Color(int.parse(hex, radix: 16));
-    } catch (e) {
-      return null;
-    }
-  }
-  
-  static Color get dynamicPrimaryColor => _dynamicPrimaryColor ?? primaryColor;
-  static Color get dynamicSecondaryColor => _dynamicSecondaryColor ?? secondaryColor;
+  /// Dynamic secondary color getter (for backwards compatibility)
+  static Color get dynamicSecondaryColor => secondaryColor;
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Dark Theme
@@ -665,10 +699,10 @@ class AppTheme {
     brightness: Brightness.dark,
     primaryColor: primaryColor,
     scaffoldBackgroundColor: const Color(0xFF121212),
-    colorScheme: const ColorScheme.dark(
+    colorScheme: ColorScheme.dark(
       primary: primaryColor,
       secondary: secondaryColor,
-      surface: Color(0xFF1E1E1E),
+      surface: const Color(0xFF1E1E1E),
       error: errorColor,
       onPrimary: textOnPrimary,
       onSecondary: Colors.white,
@@ -713,17 +747,17 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(radiusMd),
-        borderSide: const BorderSide(color: primaryColor, width: 2),
+        borderSide: BorderSide(color: primaryColor, width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(radiusMd),
         borderSide: const BorderSide(color: errorColor),
       ),
     ),
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: Color(0xFF1E1E1E),
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: const Color(0xFF1E1E1E),
       selectedItemColor: primaryColor,
-      unselectedItemColor: Color(0xFF9E9E9E),
+      unselectedItemColor: const Color(0xFF9E9E9E),
       type: BottomNavigationBarType.fixed,
       elevation: 8,
     ),

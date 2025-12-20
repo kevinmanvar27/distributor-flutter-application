@@ -54,16 +54,20 @@ class Data {
   });
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
-    userId: json["user_id"],
-    sessionId: json["session_id"],
-    invoiceNumber: json["invoice_number"],
-    totalAmount: json["total_amount"],
-    invoiceData: InvoiceData.fromJson(json["invoice_data"]),
-    status: json["status"],
-    updatedAt: DateTime.parse(json["updated_at"]),
-    createdAt: DateTime.parse(json["created_at"]),
-    id: json["id"],
-    user: User.fromJson(json["user"]),
+    userId: json["user_id"] ?? 0,
+    sessionId: json["session_id"] ?? '',
+    invoiceNumber: json["invoice_number"] ?? '',
+    totalAmount: json["total_amount"] ?? '0',
+    invoiceData: json["invoice_data"] != null 
+        ? InvoiceData.fromJson(json["invoice_data"]) 
+        : InvoiceData(cartItems: [], subtotal: 0, discountPercentage: 0, discountAmount: 0, shipping: 0, taxPercentage: 0, taxAmount: 0, total: 0.0, notes: ''),
+    status: json["status"] ?? 'pending',
+    updatedAt: json["updated_at"] != null ? DateTime.parse(json["updated_at"]) : DateTime.now(),
+    createdAt: json["created_at"] != null ? DateTime.parse(json["created_at"]) : DateTime.now(),
+    id: json["id"] ?? 0,
+    user: json["user"] != null 
+        ? User.fromJson(json["user"]) 
+        : User(id: 0, name: '', email: '', deviceToken: null, dateOfBirth: null, avatar: null, address: null, mobileNumber: null, emailVerifiedAt: null, userRole: '', createdAt: DateTime.now(), updatedAt: DateTime.now(), isApproved: 0, discountPercentage: '0'),
   );
 
   Map<String, dynamic> toJson() => {
@@ -105,14 +109,14 @@ class InvoiceData {
 
   factory InvoiceData.fromJson(Map<String, dynamic> json) => InvoiceData(
     cartItems: List<CartItem>.from(json["cart_items"].map((x) => CartItem.fromJson(x))),
-    subtotal: json["subtotal"],
-    discountPercentage: json["discount_percentage"],
-    discountAmount: json["discount_amount"],
-    shipping: json["shipping"],
-    taxPercentage: json["tax_percentage"],
-    taxAmount: json["tax_amount"],
-    total: json["total"]?.toDouble(),
-    notes: json["notes"],
+    subtotal: json["subtotal"] ?? 0,
+    discountPercentage: json["discount_percentage"] ?? 0,
+    discountAmount: json["discount_amount"] ?? 0,
+    shipping: json["shipping"] ?? 0,
+    taxPercentage: json["tax_percentage"] ?? 0,
+    taxAmount: json["tax_amount"] ?? 0,
+    total: json["total"]?.toDouble() ?? 0.0,
+    notes: json["notes"] ?? '',
   );
 
   Map<String, dynamic> toJson() => {
@@ -142,10 +146,10 @@ class CartItem {
   });
 
   factory CartItem.fromJson(Map<String, dynamic> json) => CartItem(
-    productId: json["product_id"],
-    name: json["name"],
-    quantity: json["quantity"],
-    price: json["price"],
+    productId: json["product_id"] ?? 0,
+    name: json["name"] ?? '',
+    quantity: json["quantity"] ?? 0,
+    price: json["price"] ?? 0,
   );
 
   Map<String, dynamic> toJson() => {
@@ -190,20 +194,20 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) => User(
-    id: json["id"],
-    name: json["name"],
-    email: json["email"],
+    id: json["id"] ?? 0,
+    name: json["name"] ?? '',
+    email: json["email"] ?? '',
     deviceToken: json["device_token"],
     dateOfBirth: json["date_of_birth"],
     avatar: json["avatar"],
     address: json["address"],
     mobileNumber: json["mobile_number"],
     emailVerifiedAt: json["email_verified_at"],
-    userRole: json["user_role"],
+    userRole: json["user_role"] ?? '',
     createdAt: DateTime.parse(json["created_at"]),
     updatedAt: DateTime.parse(json["updated_at"]),
-    isApproved: json["is_approved"],
-    discountPercentage: json["discount_percentage"],
+    isApproved: json["is_approved"] ?? 0,
+    discountPercentage: json["discount_percentage"] ?? '0',
   );
 
   Map<String, dynamic> toJson() => {

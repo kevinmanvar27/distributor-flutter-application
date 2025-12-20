@@ -111,7 +111,7 @@ class SearchView extends GetView<search.SearchController> {
                         hintStyle: AppTheme.bodyMedium.copyWith(
                           color: AppTheme.textSecondary,
                         ),
-                        prefixIcon: const Icon(
+                        prefixIcon: Icon(
                           Icons.search_rounded,
                           color: AppTheme.primaryColor,
                         ),
@@ -730,7 +730,7 @@ class SearchView extends GetView<search.SearchController> {
                 Row(
                   children: [
                     IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.grid_view_rounded,
                         color: AppTheme.primaryColor,
                         size: 20,
@@ -776,7 +776,7 @@ class SearchView extends GetView<search.SearchController> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const SizedBox(
+                          SizedBox(
                             width: 32,
                             height: 32,
                             child: CircularProgressIndicator(

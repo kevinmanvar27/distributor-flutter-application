@@ -57,67 +57,50 @@ class CartView extends GetView<CartController> {
 
   Widget _buildPremiumAppBar(BuildContext context) {
     return SliverAppBar(
-      expandedHeight: 60,
+      expandedHeight: 0,
       floating: false,
       pinned: true,
       elevation: 0,
       backgroundColor: AppTheme.primaryColor,
-      leading: IconButton(
-        icon: Container(
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Icon(
-            Icons.arrow_back_rounded,
-            color: Colors.white,
-            size: 20,
-          ),
-        ),
-        onPressed: () => Get.back(),
-      ),
       flexibleSpace: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: AppTheme.primaryGradient,
         ),
-        child: FlexibleSpaceBar(
-          titlePadding: const EdgeInsets.only(left: 56, bottom: 16),
-          title: Row(
-            children: [
-              const Text(
-                'Shopping Cart',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.3,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Obx(() => controller.hasItems
-                  ? Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '${controller.cartCount}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    )
-                  : const SizedBox.shrink()),
-            ],
+      ),
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'Shopping Cart',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.3,
+            ),
           ),
-        ),
+          const SizedBox(width: 8),
+          Obx(() => controller.hasItems
+              ? Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '${controller.cartCount}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                )
+              : const SizedBox.shrink()),
+        ],
       ),
       actions: [
         Obx(() => controller.hasItems
@@ -241,7 +224,7 @@ class CartView extends GetView<CartController> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Failed to load cart',
               style: TextStyle(
                 fontSize: 20,
@@ -329,7 +312,7 @@ class CartView extends GetView<CartController> {
               ),
             ),
             const SizedBox(height: 32),
-            const Text(
+            Text(
               'Your cart is empty',
               style: TextStyle(
                 fontSize: 22,
@@ -512,7 +495,7 @@ class CartView extends GetView<CartController> {
                         // Product name
                         Text(
                           item.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: AppTheme.textPrimary,
@@ -555,7 +538,7 @@ class CartView extends GetView<CartController> {
                           children: [
                             Text(
                               '₹${item.priceValue.toStringAsFixed(0)}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
                                 color: AppTheme.textPrimary,
@@ -610,7 +593,7 @@ class CartView extends GetView<CartController> {
                       const SizedBox(height: 2),
                       Text(
                         '₹${item.totalPrice.toStringAsFixed(0)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: AppTheme.primaryColor,
@@ -705,7 +688,7 @@ class CartView extends GetView<CartController> {
                 constraints: const BoxConstraints(minWidth: 44),
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: controller.isUpdating.value
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(
@@ -715,7 +698,7 @@ class CartView extends GetView<CartController> {
                       )
                     : Text(
                         '${item.quantity}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                           color: AppTheme.textPrimary,
@@ -790,7 +773,7 @@ class CartView extends GetView<CartController> {
                   color: AppTheme.primaryColor,
                 ),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   'Price Details',
                   style: TextStyle(
                     fontSize: 15,
@@ -965,7 +948,7 @@ class CartView extends GetView<CartController> {
               children: [
                 Text(
                   '₹${controller.total.toStringAsFixed(0)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
                     color: AppTheme.textPrimary,
@@ -1088,7 +1071,7 @@ class CartView extends GetView<CartController> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Remove Item?',
                 style: TextStyle(
                   fontSize: 18,
@@ -1184,7 +1167,7 @@ class CartView extends GetView<CartController> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Clear Cart?',
                 style: TextStyle(
                   fontSize: 18,

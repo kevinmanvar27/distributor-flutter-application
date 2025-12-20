@@ -415,7 +415,7 @@ class ProfileController extends GetxController {
             ),
             const SizedBox(height: AppTheme.spacingMD),
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined, color: AppTheme.primaryColor),
+              leading: Icon(Icons.photo_library_outlined, color: AppTheme.primaryColor),
               title: const Text('Choose from Gallery'),
               onTap: () {
                 Get.back();
@@ -423,7 +423,7 @@ class ProfileController extends GetxController {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt_outlined, color: AppTheme.primaryColor),
+              leading: Icon(Icons.camera_alt_outlined, color: AppTheme.primaryColor),
               title: const Text('Take a Photo'),
               onTap: () {
                 Get.back();

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_controller.dart';
 import 'core/services/storage_service.dart';
 import 'core/services/api_service.dart';
 import 'modules/wishlist/wishlist_controller.dart';
@@ -22,7 +24,7 @@ void main() async {
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
-      systemNavigationBarColor: AppTheme.surfaceColor,
+      systemNavigationBarColor: Colors.white,
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
@@ -45,6 +47,9 @@ Future<void> _initServices() async {
   // API service (Dio wrapper)
   Get.put<ApiService>(ApiService(), permanent: true);
   
+  // Theme controller (manages reactive theme state)
+  Get.put<ThemeController>(ThemeController(), permanent: true);
+  
   // Wishlist controller (global, persists throughout app)
   Get.put<WishlistController>(WishlistController(), permanent: true);
 }
@@ -54,14 +59,17 @@ class DistributorApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
+    final themeController = Get.find<ThemeController>();
+    
+    // Wrap in Obx to rebuild entire app when theme changes
+    return Obx(() => GetMaterialApp(
       // App info
       title: 'Distributor',
       debugShowCheckedModeBanner: false,
       
-      // Theme
-      theme: _getInitialTheme(),
-      darkTheme: AppTheme.darkTheme, // We could also fetch dark theme if needed
+      // Theme - now reactive via ThemeController!
+      theme: themeController.currentTheme.value,
+      darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.light,
       
       // Routing
@@ -72,13 +80,12 @@ class DistributorApp extends StatelessWidget {
       defaultTransition: Transition.cupertino,
       transitionDuration: const Duration(milliseconds: 300),
       
-      // Locale (can be expanded for i18n)
+      // Locale
       locale: const Locale('en', 'US'),
       fallbackLocale: const Locale('en', 'US'),
       
       // Error handling
       builder: (context, child) {
-        // Apply global text scaling limits
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
             textScaler: TextScaler.linear(
@@ -88,17 +95,6 @@ class DistributorApp extends StatelessWidget {
           child: child ?? const SizedBox.shrink(),
         );
       },
-    );
-  }
-
-  ThemeData _getInitialTheme() {
-    try {
-      final storage = Get.find<StorageService>();
-      final settings = storage.getSettings();
-      if (settings != null) {
-        return AppTheme.createThemeFromSettings(settings);
-      }
-    } catch (_) {}
-    return AppTheme.lightTheme;
+    ));
   }
 }

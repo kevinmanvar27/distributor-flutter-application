@@ -121,8 +121,8 @@ class ProductCard extends StatelessWidget {
                     Flexible(
                       child: Text(
                         name,
-                        style: const TextStyle(
-                          fontSize: 12,
+                        style: TextStyle(
+                          fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: AppTheme.textPrimary,
                           height: 1.2,
@@ -144,6 +144,9 @@ class ProductCard extends StatelessWidget {
                 ),
               ),
             ),
+            // Add to Cart button at bottom
+            if (showAddToCart && inStock)
+              _buildGridCartButton(),
           ],
         ),
       ),
@@ -196,7 +199,7 @@ class ProductCard extends StatelessWidget {
                     // Name
                     Text(
                       name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: AppTheme.textPrimary,
@@ -351,7 +354,7 @@ class ProductCard extends StatelessWidget {
             color: Colors.white.withValues(alpha: 0.9),
             borderRadius: BorderRadius.circular(4),
           ),
-          child: const Text(
+          child: Text(
             'OUT OF STOCK',
             style: TextStyle(
               color: AppTheme.textPrimary,
@@ -433,10 +436,56 @@ class ProductCard extends StatelessWidget {
               color: AppTheme.primaryColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.add_shopping_cart_rounded,
               color: AppTheme.primaryColor,
               size: 20,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildGridCartButton() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: Colors.grey[200]!,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onAddToCart,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: AppTheme.spacingSm,
+              horizontal: AppTheme.spacingSm,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.add_shopping_cart_rounded,
+                  color: AppTheme.primaryColor,
+                  size: 16,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Add to Cart',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.primaryColor,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -792,7 +841,7 @@ class CompactProductCard extends StatelessWidget {
                 children: [
                   Text(
                     name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                       color: AppTheme.textPrimary,
@@ -803,7 +852,7 @@ class CompactProductCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     '₹${sellingPrice.toStringAsFixed(0)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: AppTheme.textPrimary,

@@ -239,7 +239,7 @@ class DynamicNavigationDrawer extends StatelessWidget {
                 right: 20,
                 bottom: 24,
               ),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: AppTheme.primaryGradient,
               ),
               child: Column(
@@ -369,8 +369,8 @@ class DynamicNavigationRail extends StatelessWidget {
       backgroundColor: AppTheme.surfaceColor,
       elevation: 2,
       indicatorColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-      selectedIconTheme: const IconThemeData(color: AppTheme.primaryColor),
-      selectedLabelTextStyle: const TextStyle(
+      selectedIconTheme: IconThemeData(color: AppTheme.primaryColor),
+      selectedLabelTextStyle: TextStyle(
         color: AppTheme.primaryColor,
         fontWeight: FontWeight.w600,
         fontSize: 12,

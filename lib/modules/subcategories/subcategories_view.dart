@@ -532,12 +532,17 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
                   const SizedBox(width: AppTheme.spacingSm),
                   Obx(() {
                     final selectedSub = controller.selectedSubcategory.value;
-                    return Text(
-                      selectedSub != null 
-                          ? selectedSub.name 
-                          : 'All Products',
-                      style: AppTheme.titleSmall.copyWith(
-                        fontWeight: FontWeight.w600,
+                    return SizedBox(
+                      width: 150,
+                      child: Text(
+                        selectedSub != null
+                            ? selectedSub.name
+                            : 'All Products',
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTheme.titleSmall.copyWith(
+                          fontWeight: FontWeight.w600,
+
+                        ),
                       ),
                     );
                   }),

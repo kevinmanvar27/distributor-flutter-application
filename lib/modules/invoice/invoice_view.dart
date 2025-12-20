@@ -1,16 +1,11 @@
 //
-// Invoice View - Premium UI
-// Displays generated invoice with:
-// - Premium gradient header
-// - Invoice number, date, status
-// - Customer information
-// - Line items table with premium styling
-// - Total summary
-// - Action buttons with gradient styling
+// Invoice View - Modern Redesigned UI
+// Clean, minimal, and professional invoice display
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/widgets/dynamic_appbar.dart';
 import '../../models/cart_invoince.dart';
 import 'invoice_controller.dart';
 
@@ -20,166 +15,122 @@ class InvoiceView extends GetView<InvoiceController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          // Premium Gradient AppBar
-          _buildSliverAppBar(),
-          
-          // Invoice Content
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(AppTheme.spacingMd),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Invoice Header Card
-                  _buildInvoiceHeader(),
-                  const SizedBox(height: AppTheme.spacingMd),
-                  // Line Items
-                  _buildLineItems(),
-                  const SizedBox(height: AppTheme.spacingMd),
-                  // Total Summary
-                  _buildTotalSummary(),
-                  const SizedBox(height: AppTheme.spacingXl),
-                  // Action Buttons
-                  _buildActionButtons(),
-                  const SizedBox(height: AppTheme.spacingXl),
-                ],
-              ),
-            ),
-          ),
+      backgroundColor: Colors.grey[50],
+      appBar: DynamicAppBar(
+        title: 'Invoice Details',
+        useGradient: true,
+        actions: [
+          Obx(() => controller.invoiceResponse != null
+              ? IconButton(
+                  icon: const Icon(Icons.download_outlined),
+                  onPressed: controller.downloadPdf,
+                  tooltip: 'Download PDF',
+                )
+              : const SizedBox.shrink()),
+          const SizedBox(width: 8),
         ],
       ),
-    );
-  }
+      body: Obx(() {
+        // Access reactive values to trigger rebuild
+        final isLoading = controller.isLoading.value;
+        final hasError = controller.hasError.value;
+        final invoiceResponse = controller.invoiceResponse;
+        
+        debugPrint('InvoiceView: Obx rebuild - isLoading: $isLoading, hasError: $hasError, invoiceResponse: ${invoiceResponse != null}');
+        
+        // Loading state
+        if (isLoading) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Premium Sliver AppBar
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  Widget _buildSliverAppBar() {
-    return SliverAppBar(
-      expandedHeight: 140,
-      floating: false,
-      pinned: true,
-      elevation: 0,
-      backgroundColor: AppTheme.dynamicPrimaryColor,
-      leading: IconButton(
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-          ),
-          child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-        ),
-        onPressed: () => Get.back(),
-      ),
-      actions: [
-        IconButton(
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-            ),
-            child: const Icon(Icons.share_outlined, color: Colors.white, size: 20),
-          ),
-          onPressed: controller.shareInvoice,
-          tooltip: 'Share',
-        ),
-        IconButton(
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-            ),
-            child: const Icon(Icons.download_outlined, color: Colors.white, size: 20),
-          ),
-          onPressed: controller.downloadPdf,
-          tooltip: 'Download PDF',
-        ),
-        const SizedBox(width: AppTheme.spacingSm),
-      ],
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppTheme.dynamicPrimaryColor,
-                AppTheme.dynamicPrimaryColor.withValues(alpha: 0.8),
-                AppTheme.dynamicSecondaryColor.withValues(alpha: 0.6),
+        // Error state
+        if (hasError || invoiceResponse == null) {
+          debugPrint('InvoiceView: Showing error state - hasError: $hasError, invoiceResponse is null: ${invoiceResponse == null}');
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Failed to load invoice',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => Get.back(),
+                  child: const Text('Go Back'),
+                ),
               ],
             ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                        ),
-                        child: const Icon(
-                          Icons.receipt_long_outlined,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
-                      const SizedBox(width: AppTheme.spacingMd),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Invoice',
-                              style: AppTheme.headingMedium.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '#${controller.invoice.invoiceNumber}',
-                              style: AppTheme.bodySmall.copyWith(
-                                color: Colors.white.withValues(alpha: 0.8),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Status badge
-                      _buildStatusBadge(controller.invoice.status),
-                    ],
-                  ),
-                ],
+          );
+        }
+
+        // Extract data from invoiceResponse for use in helper methods
+        final invoice = invoiceResponse.data.invoice;
+        final invoiceData = invoiceResponse.data.invoiceData;
+        final items = invoiceData.cartItems;
+        
+        debugPrint('InvoiceView: Showing content - invoice: ${invoice.invoiceNumber}, items: ${items.length}');
+
+        // Success state - show invoice content
+        return SingleChildScrollView(
+          child: Column(
+            children: [
+              // Invoice Header Section
+              _buildHeaderSection(invoice),
+              
+              // Main Content
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    // Status and Dates Card
+                    _buildStatusCard(invoice, invoiceData),
+                    const SizedBox(height: 16),
+                    
+                    // Items List
+                    _buildItemsCard(items),
+                    const SizedBox(height: 16),
+                    
+                    // Payment Summary
+                    _buildPaymentSummary(invoice, invoiceData),
+                    const SizedBox(height: 24),
+                    
+                    // Action Buttons
+                    _buildActionButtons(),
+                    const SizedBox(height: 32),
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
-        ),
-      ),
+        );
+      }),
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Invoice Header Card
-  // ─────────────────────────────────────────────────────────────────────────────
 
-  Widget _buildInvoiceHeader() {
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HEADER SECTION
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  Widget _buildHeaderSection(Invoice invoice) {
     return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -188,176 +139,121 @@ class InvoiceView extends GetView<InvoiceController> {
           ),
         ],
       ),
+      padding: const EdgeInsets.all(24),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with gradient
-          Container(
-            padding: const EdgeInsets.all(AppTheme.spacingMd),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                colors: [
-                  AppTheme.dynamicPrimaryColor.withValues(alpha: 0.1),
-                  AppTheme.dynamicSecondaryColor.withValues(alpha: 0.05),
-                ],
-              ),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(AppTheme.radiusMd),
-                topRight: Radius.circular(AppTheme.radiusMd),
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.dynamicPrimaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                  ),
-                  child: Icon(
-                    Icons.info_outline,
-                    size: 18,
-                    color: AppTheme.dynamicPrimaryColor,
-                  ),
-                ),
-                const SizedBox(width: AppTheme.spacingSm),
-                Text(
-                  'Invoice Details',
-                  style: AppTheme.titleSmall.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.dynamicPrimaryColor,
-                  ),
-                ),
-              ],
+          // Invoice Number
+          Text(
+            invoice.invoiceNumber,
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+              letterSpacing: -0.5,
             ),
           ),
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(AppTheme.spacingMd),
-            child: Column(
-              children: [
-                // Dates row
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildInfoItem(
-                        'Invoice Date',
-                        controller.formatDate(controller.invoiceData.invoiceDate),
-                        Icons.calendar_today_outlined,
-                      ),
-                    ),
-                    Container(
-                      width: 1,
-                      height: 40,
-                      color: AppTheme.borderColor.withValues(alpha: 0.3),
-                    ),
-                    Expanded(
-                      child: _buildInfoItem(
-                        'Created',
-                        controller.formatDateTime(controller.invoice.createdAt),
-                        Icons.access_time_outlined,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+          const SizedBox(height: 8),
+          
+          // Status Badge
+          _buildStatusBadge(invoice.status),
         ],
       ),
     );
   }
 
   Widget _buildStatusBadge(String status) {
-    final color = controller.getStatusColor(status);
-    final isSuccess = status.toLowerCase() == 'approved' || 
-                      status.toLowerCase() == 'paid' ||
-                      status.toLowerCase() == 'completed';
+    Color backgroundColor;
+    Color textColor;
+    IconData icon;
+    
+    switch (status.toLowerCase()) {
+      case 'paid':
+      case 'completed':
+      case 'approved':
+        backgroundColor = Colors.green[50]!;
+        textColor = Colors.green[700]!;
+        icon = Icons.check_circle_outline;
+        break;
+      case 'pending':
+        backgroundColor = Colors.orange[50]!;
+        textColor = Colors.orange[700]!;
+        icon = Icons.schedule_outlined;
+        break;
+      case 'cancelled':
+      case 'rejected':
+        backgroundColor = Colors.red[50]!;
+        textColor = Colors.red[700]!;
+        icon = Icons.cancel_outlined;
+        break;
+      default:
+        backgroundColor = Colors.blue[50]!;
+        textColor = Colors.blue[700]!;
+        icon = Icons.info_outline;
+    }
     
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spacingMd,
-        vertical: AppTheme.spacingSm,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(20),
       ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: textColor),
+          const SizedBox(width: 6),
+          Text(
+            status.toUpperCase(),
+            style: TextStyle(
+              color: textColor,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // STATUS CARD
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  Widget _buildStatusCard(Invoice invoice, InvoiceData invoiceData) {
+    return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.3),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            status.toUpperCase(),
-            style: AppTheme.labelSmall.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
-            ),
-          ),
-          if (isSuccess) ...[
-            const SizedBox(width: 4),
-            Icon(Icons.check_circle, size: 14, color: color),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoItem(String label, String value, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingSm),
+      padding: const EdgeInsets.all(20),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppTheme.dynamicPrimaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-            ),
-            child: Icon(
-              icon,
-              size: 16,
-              color: AppTheme.dynamicPrimaryColor,
-            ),
-          ),
-          const SizedBox(width: AppTheme.spacingSm),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: AppTheme.bodySmall.copyWith(
-                    color: AppTheme.textTertiary,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: AppTheme.bodyMedium.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+            child: _buildInfoColumn(
+              'Invoice Date',
+              controller.formatDate(invoiceData.invoiceDate),
+              Icons.calendar_today_outlined,
+            ),
+          ),
+          Container(
+            width: 1,
+            height: 40,
+            color: Colors.grey[200],
+          ),
+          Expanded(
+            child: _buildInfoColumn(
+              'Created',
+              controller.formatDate(invoice.createdAt),
+              Icons.access_time_outlined,
             ),
           ),
         ],
@@ -365,478 +261,343 @@ class InvoiceView extends GetView<InvoiceController> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Line Items - Premium Table
-  // ─────────────────────────────────────────────────────────────────────────────
+  Widget _buildInfoColumn(String label, String value, IconData icon) {
+    return Column(
+      children: [
+        Icon(icon, size: 20, color: Colors.grey[600]),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.black87,
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
 
-  Widget _buildLineItems() {
+
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ITEMS CARD
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  Widget _buildItemsCard(List<CartItem> items) {
+    // Empty state check
+    if (items.isEmpty) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(32),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(Icons.receipt_long_outlined, size: 48, color: Colors.grey[400]),
+              const SizedBox(height: 12),
+              Text(
+                'No items in this invoice',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header with gradient
-          Container(
-            padding: const EdgeInsets.all(AppTheme.spacingMd),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                colors: [
-                  AppTheme.dynamicPrimaryColor.withValues(alpha: 0.1),
-                  AppTheme.dynamicSecondaryColor.withValues(alpha: 0.05),
-                ],
-              ),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(AppTheme.radiusMd),
-                topRight: Radius.circular(AppTheme.radiusMd),
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.dynamicPrimaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                  ),
-                  child: Icon(
-                    Icons.shopping_bag_outlined,
-                    size: 18,
-                    color: AppTheme.dynamicPrimaryColor,
-                  ),
-                ),
-                const SizedBox(width: AppTheme.spacingSm),
-                Text(
-                  'Items',
-                  style: AppTheme.titleSmall.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.dynamicPrimaryColor,
-                  ),
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppTheme.spacingSm,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.dynamicPrimaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                  ),
-                  child: Text(
-                    '${controller.items.length} items',
-                    style: AppTheme.bodySmall.copyWith(
-                      color: AppTheme.dynamicPrimaryColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Table header row
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppTheme.spacingMd,
-              vertical: AppTheme.spacingSm,
-            ),
-            decoration: BoxDecoration(
-              color: AppTheme.backgroundColor,
-              border: Border(
-                bottom: BorderSide(
-                  color: AppTheme.borderColor.withValues(alpha: 0.3),
-                ),
-              ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Text(
-                    'Product',
-                    style: AppTheme.labelSmall.copyWith(
-                      color: AppTheme.textTertiary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    'Qty',
-                    style: AppTheme.labelSmall.copyWith(
-                      color: AppTheme.textTertiary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    'Price',
-                    style: AppTheme.labelSmall.copyWith(
-                      color: AppTheme.textTertiary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    textAlign: TextAlign.right,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    'Total',
-                    style: AppTheme.labelSmall.copyWith(
-                      color: AppTheme.textTertiary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    textAlign: TextAlign.right,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Item rows
-          ...controller.items.asMap().entries.map((entry) => 
-            _buildLineItemRow(entry.value, entry.key)),
-        ],
+      child: ListView.separated(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: items.length,
+        separatorBuilder: (context, index) => Divider(
+          height: 1,
+          color: Colors.grey[200],
+        ),
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return _buildItemRow(item, index);
+        },
       ),
     );
   }
 
-  Widget _buildLineItemRow(CartItem item, int index) {
-    final isEven = index % 2 == 0;
-    
+  Widget _buildItemRow(CartItem item, int index) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spacingMd,
-        vertical: AppTheme.spacingMd,
-      ),
-      decoration: BoxDecoration(
-        color: isEven ? Colors.white : AppTheme.backgroundColor.withValues(alpha: 0.5),
-        border: Border(
-          bottom: BorderSide(
-            color: AppTheme.borderColor.withValues(alpha: 0.2),
-          ),
-        ),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      color: index % 2 == 0 ? Colors.transparent : Colors.grey[50],
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Item Number
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: AppTheme.dynamicPrimaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: Text(
+                '${index + 1}',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.dynamicPrimaryColor,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          
+          // Item Details
           Expanded(
-            flex: 3,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   item.productName,
-                  style: AppTheme.bodyMedium.copyWith(
+                  style: const TextStyle(
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
+                    color: Colors.black87,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                ),
+                if (item.productDescription.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    item.productDescription,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'Qty: ${item.quantity}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '× ${controller.formatCurrencyFromString(item.price)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8,
-                vertical: 4,
-              ),
-              decoration: BoxDecoration(
-                color: AppTheme.dynamicPrimaryColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-              ),
-              child: Text(
-                '${item.quantity}',
-                style: AppTheme.bodyMedium.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.dynamicPrimaryColor,
+          
+          // Item Total
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                controller.formatCurrency(item.total),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
                 ),
-                textAlign: TextAlign.center,
               ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              controller.formatCurrencyFromString(item.price),
-              style: AppTheme.bodyMedium.copyWith(
-                color: AppTheme.textSecondary,
-              ),
-              textAlign: TextAlign.right,
-            ),
-          ),
-          Expanded(
-            child: Text(
-              controller.formatCurrency(item.total),
-              style: AppTheme.bodyMedium.copyWith(
-                fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
-              ),
-              textAlign: TextAlign.right,
-            ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Total Summary - Premium Card
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  Widget _buildTotalSummary() {
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PAYMENT SUMMARY
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  Widget _buildPaymentSummary(Invoice invoice, InvoiceData invoiceData) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
+      padding: const EdgeInsets.all(20),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with gradient
-          Container(
-            padding: const EdgeInsets.all(AppTheme.spacingMd),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                colors: [
-                  AppTheme.dynamicPrimaryColor.withValues(alpha: 0.1),
-                  AppTheme.dynamicSecondaryColor.withValues(alpha: 0.05),
-                ],
-              ),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(AppTheme.radiusMd),
-                topRight: Radius.circular(AppTheme.radiusMd),
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.dynamicPrimaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                  ),
-                  child: Icon(
-                    Icons.calculate_outlined,
-                    size: 18,
-                    color: AppTheme.dynamicPrimaryColor,
-                  ),
-                ),
-                const SizedBox(width: AppTheme.spacingSm),
-                Text(
-                  'Summary',
-                  style: AppTheme.titleSmall.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.dynamicPrimaryColor,
-                  ),
-                ),
-              ],
+          const Text(
+            'Payment Summary',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
             ),
           ),
-          // Summary content
-          Padding(
-            padding: const EdgeInsets.all(AppTheme.spacingMd),
-            child: Column(
-              children: [
-                _buildSummaryRow(
-                  'Subtotal',
-                  controller.formatCurrency(controller.invoiceData.total),
+          const SizedBox(height: 16),
+          
+          // Subtotal
+          _buildSummaryRow(
+            'Subtotal',
+            controller.formatCurrency(invoiceData.total),
+            false,
+          ),
+          
+          const SizedBox(height: 20),
+          Divider(height: 1, color: Colors.grey[300]),
+          const SizedBox(height: 16),
+          
+          // Grand Total
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Total Amount',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
                 ),
-                const SizedBox(height: AppTheme.spacingMd),
-                Container(
-                  height: 1,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppTheme.borderColor.withValues(alpha: 0.1),
-                        AppTheme.borderColor.withValues(alpha: 0.5),
-                        AppTheme.borderColor.withValues(alpha: 0.1),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppTheme.spacingMd),
-                // Grand total with gradient background
-                Container(
-                  padding: const EdgeInsets.all(AppTheme.spacingMd),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: [
-                        AppTheme.dynamicPrimaryColor.withValues(alpha: 0.1),
-                        AppTheme.dynamicSecondaryColor.withValues(alpha: 0.1),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Grand Total',
-                        style: AppTheme.titleMedium.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      Text(
-                        controller.formatCurrencyFromString(controller.invoice.totalAmount),
-                        style: AppTheme.headingMedium.copyWith(
-                          color: AppTheme.dynamicPrimaryColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppTheme.dynamicPrimaryColor,
+                      AppTheme.dynamicPrimaryColor.withValues(alpha: 0.8),
                     ],
                   ),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              ],
-            ),
+                child: Text(
+                  controller.formatCurrencyFromString(invoice.totalAmount),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryRow(String label, String value, {bool isBold = false}) {
+  Widget _buildSummaryRow(String label, String value, bool isBold) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
-          style: AppTheme.bodyMedium.copyWith(
-            color: AppTheme.textSecondary,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: isBold ? FontWeight.w600 : FontWeight.w500,
+            color: Colors.grey[700],
           ),
         ),
         Text(
           value,
-          style: AppTheme.bodyMedium.copyWith(
-            fontWeight: isBold ? FontWeight.w600 : FontWeight.normal,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
+            color: Colors.black87,
           ),
         ),
       ],
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Action Buttons - Premium Gradient Style
-  // ─────────────────────────────────────────────────────────────────────────────
-
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ACTION BUTTONS
+  // ═══════════════════════════════════════════════════════════════════════════
+  
   Widget _buildActionButtons() {
-    final isDraft = controller.invoice.status.toLowerCase() == 'draft';
-    
-    return Column(
+    return Row(
       children: [
-        // Primary action - Download PDF
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppTheme.dynamicPrimaryColor,
-                AppTheme.dynamicSecondaryColor,
-              ],
-            ),
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.dynamicPrimaryColor.withValues(alpha: 0.3),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: controller.downloadPdf,
-              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.spacingLg,
-                  vertical: AppTheme.spacingMd + 4,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.picture_as_pdf_outlined,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                    const SizedBox(width: AppTheme.spacingSm),
-                    Text(
-                      'Download PDF',
-                      style: AppTheme.labelLarge.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: controller.shareInvoice,
+            icon: const Icon(Icons.share_outlined, size: 20),
+            label: const Text('Share'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              side: BorderSide(color: AppTheme.dynamicPrimaryColor, width: 1.5),
+              foregroundColor: AppTheme.dynamicPrimaryColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
               ),
             ),
           ),
         ),
-        const SizedBox(height: AppTheme.spacingMd),
-        // Secondary action
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            border: Border.all(
-              color: AppTheme.dynamicPrimaryColor.withValues(alpha: 0.3),
-              width: 1.5,
-            ),
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: isDraft ? controller.goBack : controller.goToHome,
-              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppTheme.spacingLg,
-                  vertical: AppTheme.spacingMd + 4,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      isDraft ? Icons.shopping_cart_outlined : Icons.home_outlined,
-                      color: AppTheme.dynamicPrimaryColor,
-                      size: 22,
-                    ),
-                    const SizedBox(width: AppTheme.spacingSm),
-                    Text(
-                      isDraft ? 'Back to Cart' : 'Continue Shopping',
-                      style: AppTheme.labelLarge.copyWith(
-                        color: AppTheme.dynamicPrimaryColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: controller.downloadPdf,
+            icon: const Icon(Icons.download_outlined, size: 20),
+            label: const Text('Download PDF'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              backgroundColor: AppTheme.dynamicPrimaryColor,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
               ),
             ),
           ),

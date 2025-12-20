@@ -3,10 +3,11 @@
 // Handles app initialization and authentication check on startup.
 // Navigates to login or main screen based on auth state.
 
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/services/api_service.dart';
-import '../../core/theme/app_theme.dart';
+import '../../core/theme/theme_controller.dart';
 import '../../models/Setting.dart' as settings_model;
 
 class SplashController extends GetxController {
@@ -60,28 +61,53 @@ class SplashController extends GetxController {
   }
 
   Future<void> _fetchAppSettings() async {
+    final themeController = Get.find<ThemeController>();
+    
     try {
-      final response = await _apiService.get('/app-settings');
+      // Log the API endpoint being called for colors and fonts
+      const endpoint = '/app-settings';
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🎨 SPLASH: Fetching app colors and fonts');
+      debugPrint('📡 API Endpoint: $endpoint');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      
+      final response = await _apiService.get(endpoint);
+      
       if (response.statusCode == 200 && response.data != null) {
         final setting = settings_model.Setting.fromJson(response.data);
         if (setting.success) {
-          // Save settings
+          // Log successful settings fetch
+          debugPrint('✅ SPLASH: App settings fetched successfully');
+          debugPrint('   Primary Color: ${setting.data.primaryColor}');
+          debugPrint('   Secondary Color: ${setting.data.secondaryColor}');
+          debugPrint('   Primary Font: ${setting.data.primaryFont}');
+          debugPrint('   Secondary Font: ${setting.data.secondaryFont}');
+          
+          // Save settings to storage
           await _storageService.saveSettings(setting.data);
           
-          // Apply theme
-          final theme = AppTheme.createThemeFromSettings(setting.data);
-          Get.changeTheme(theme);
+          // UPDATE THEME VIA CONTROLLER - This triggers app rebuild!
+          themeController.updateFromSettings(setting.data);
+          
+          debugPrint('✅ SPLASH: Theme applied via ThemeController');
+          debugPrint('   ThemeController.primaryColor: ${themeController.primaryColor.value}');
         }
+      } else {
+        debugPrint('⚠️ SPLASH: API returned status ${response.statusCode}');
       }
     } catch (e) {
-      // If fetching fails, checks if we have cached settings
+      // If fetching fails, check if we have cached settings
+      debugPrint('❌ SPLASH: Failed to fetch app settings: $e');
+      
       final cachedSettings = _storageService.getSettings();
       if (cachedSettings != null) {
-        final theme = AppTheme.createThemeFromSettings(cachedSettings);
-        Get.changeTheme(theme);
+        debugPrint('📦 SPLASH: Using cached settings instead');
+        // Update theme from cached settings
+        themeController.updateFromSettings(cachedSettings);
+        debugPrint('🎨 SPLASH: Theme applied from cache via ThemeController');
+      } else {
+        debugPrint('⚠️ SPLASH: No cached settings, using default theme');
       }
-      // Otherwise continue with default theme
-      print('Failed to fetch app settings: $e');
     }
   }
 }

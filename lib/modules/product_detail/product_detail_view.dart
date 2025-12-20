@@ -113,7 +113,7 @@ class ProductDetailView extends GetView<ProductDetailController> {
                 shape: BoxShape.circle,
                 boxShadow: AppTheme.shadowLg,
               ),
-              child: const CircularProgressIndicator(
+              child: CircularProgressIndicator(
                 strokeWidth: 3,
                 valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
               ),
@@ -544,7 +544,7 @@ class ProductDetailView extends GetView<ProductDetailController> {
                   color: AppTheme.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.local_shipping_rounded,
                   color: AppTheme.primaryColor,
                   size: 20,
@@ -1002,7 +1002,7 @@ class ProductDetailView extends GetView<ProductDetailController> {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       child: controller.isAddingToCart.value
-                          ? const Center(
+                          ? Center(
                               child: SizedBox(
                                 width: 24,
                                 height: 24,
@@ -1015,7 +1015,7 @@ class ProductDetailView extends GetView<ProductDetailController> {
                           : Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.add_shopping_cart_rounded,
                                   color: AppTheme.primaryColor,
                                   size: 20,

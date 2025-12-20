@@ -22,78 +22,69 @@ class ProductsView extends GetView<ProductsController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+      // Changed from NestedScrollView to Column to keep AppBar fixed (like home screen)
+      body: Column(
+        children: [
+          // Fixed AppBar that doesn't collapse on scroll
           _buildPremiumAppBar(context),
+          // Scrollable content area
+          Expanded(
+            child: Obx(() {
+              if (controller.isLoading.value && controller.products.isEmpty) {
+                return _buildLoadingState();
+              }
+              
+              if (controller.hasError.value && controller.products.isEmpty) {
+                return _buildErrorState();
+              }
+              
+              if (controller.products.isEmpty) {
+                return _buildEmptyState();
+              }
+              
+              return _buildProductsList();
+            }),
+          ),
         ],
-        body: Obx(() {
-          if (controller.isLoading.value && controller.products.isEmpty) {
-            return _buildLoadingState();
-          }
-          
-          if (controller.hasError.value && controller.products.isEmpty) {
-            return _buildErrorState();
-          }
-          
-          if (controller.products.isEmpty) {
-            return _buildEmptyState();
-          }
-          
-          return _buildProductsList();
-        }),
       ),
     );
   }
   
+  // Converted from SliverAppBar to Container (matching home screen pattern)
   Widget _buildPremiumAppBar(BuildContext context) {
-    return SliverAppBar(
-      expandedHeight: 120,
-      floating: true,
-      pinned: true,
-      elevation: 0,
-      backgroundColor: AppTheme.primaryColor,
-      flexibleSpace: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.primaryGradient,
-        ),
-        child: FlexibleSpaceBar(
-          background: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      decoration: BoxDecoration(
+        gradient: AppTheme.primaryGradient,
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Title row
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              child: Row(
                 children: [
-                  // Title row
-                  Row(
-                    children: [
-                      const Text(
-                        'Products',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                      const Spacer(),
-                      // Cart button - REMOVED
-                    ],
+                  const Text(
+                    'Products',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.3,
+                    ),
                   ),
+                  const Spacer(),
                 ],
               ),
             ),
-          ),
-        ),
-      ),
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(56),
-        child: Container(
-          height: 56,
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-          decoration: const BoxDecoration(
-            gradient: AppTheme.primaryGradient,
-          ),
-          child: _buildSearchBar(),
+            // Search bar
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: _buildSearchBar(),
+            ),
+          ],
         ),
       ),
     );
@@ -246,7 +237,7 @@ class ProductsView extends GetView<ProductsController> {
             child: Text(
               '${controller.products.length} Products',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: AppTheme.primaryColor,
               ),
@@ -275,7 +266,7 @@ class ProductsView extends GetView<ProductsController> {
                     Text(
                       '"${controller.searchQuery.value}"',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 14,
                         color: AppTheme.textSecondary,
                         fontStyle: FontStyle.italic,
                       ),
@@ -341,7 +332,7 @@ class ProductsView extends GetView<ProductsController> {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'Oops! Something went wrong',
               style: TextStyle(
                 fontSize: 18,
@@ -391,7 +382,7 @@ class ProductsView extends GetView<ProductsController> {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'No products found',
               style: TextStyle(
                 fontSize: 18,
@@ -418,7 +409,7 @@ class ProductsView extends GetView<ProductsController> {
                     onPressed: controller.clearSearch,
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppTheme.primaryColor,
-                      side: const BorderSide(color: AppTheme.primaryColor),
+                      side: BorderSide(color: AppTheme.primaryColor),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 12,

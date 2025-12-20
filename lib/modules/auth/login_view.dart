@@ -259,73 +259,6 @@ class _LoginViewState extends State<LoginView> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
-                    // Divider with "or"
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            height: 1,
-                            color: AppTheme.borderColor,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            'or continue with',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppTheme.textTertiary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Container(
-                            height: 1,
-                            color: AppTheme.borderColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    
-                    // Social login buttons
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildSocialButton(
-                          icon: Icons.g_mobiledata_rounded,
-                          label: 'Google',
-                          color: const Color(0xFFDB4437),
-                          onTap: () {
-                            Get.snackbar(
-                              'Coming Soon',
-                              'Google login will be available soon',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: AppTheme.surfaceColor,
-                              colorText: AppTheme.textPrimary,
-                            );
-                          },
-                        ),
-                        const SizedBox(width: 16),
-                        _buildSocialButton(
-                          icon: Icons.phone_android_rounded,
-                          label: 'Phone',
-                          color: AppTheme.dynamicPrimaryColor,
-                          onTap: () {
-                            Get.snackbar(
-                              'Coming Soon',
-                              'Phone login will be available soon',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: AppTheme.surfaceColor,
-                              colorText: AppTheme.textPrimary,
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-                    
                     // Register link
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -385,7 +318,7 @@ class _LoginViewState extends State<LoginView> {
   Widget _buildInputLabel(String label) {
     return Text(
       label,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         color: AppTheme.textPrimary,
@@ -403,7 +336,7 @@ class _LoginViewState extends State<LoginView> {
       onFieldSubmitted: (_) {
         FocusScope.of(context).requestFocus(_passwordFocusNode);
       },
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 15,
         fontWeight: FontWeight.w500,
         color: AppTheme.textPrimary,
@@ -461,7 +394,7 @@ class _LoginViewState extends State<LoginView> {
           textInputAction: TextInputAction.done,
           validator: Validators.password,
           onFieldSubmitted: (_) => _handleLogin(),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w500,
             color: AppTheme.textPrimary,

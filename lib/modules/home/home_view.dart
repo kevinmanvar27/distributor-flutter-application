@@ -23,162 +23,257 @@ class HomeView extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // appBar: AppBar(
+      //   title: Text(
+      //     'Distributor',
+      //     style: TextStyle(
+      //       color: Colors.white,
+      //       fontSize: 22,
+      //       fontWeight: FontWeight.w700,
+      //       letterSpacing: -0.5,
+      //     ),
+      //   ),
+      // ),
       backgroundColor: AppTheme.backgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Premium AppBar
-            _buildPremiumAppBar(),
-            
-            // Main Content
-            Expanded(
-              child: Obx(() {
-                // Loading state
-                if (controller.isLoading.value && !controller.hasContent) {
-                  return _buildLoadingState();
-                }
-                
-                // Error state
-                if (controller.hasError.value && !controller.hasContent) {
-                  return _buildErrorState();
-                }
-                
-                // Empty state
-                if (!controller.hasContent) {
-                  return _buildEmptyState();
-                }
-                
-                // Content
-                return RefreshIndicator(
-                  onRefresh: controller.refreshHomeData,
-                  color: AppTheme.primaryColor,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Hero Banner
-                        _buildHeroBanner(),
-                        
-                        // Categories section
-                        if (controller.categories.isNotEmpty)
-                          _buildCategoriesSection(),
-                        
-                        // Featured Products section
-                        if (controller.featuredProducts.isNotEmpty)
-                          _buildProductSection(
-                            title: 'Featured Products',
-                            subtitle: 'Handpicked for you',
-                            products: controller.featuredProducts,
-                            icon: Icons.star_rounded,
-                            iconColor: AppTheme.secondaryColor,
-                          ),
-                        
-                        // Latest Products section
-                        if (controller.latestProducts.isNotEmpty)
-                          _buildProductSection(
-                            title: 'New Arrivals',
-                            subtitle: 'Fresh from the warehouse',
-                            products: controller.latestProducts,
-                            icon: Icons.new_releases_rounded,
-                            iconColor: AppTheme.accentColor,
-                          ),
-                        
-                        // Bottom padding
-                        const SizedBox(height: 100),
-                      ],
-                    ),
+      body: Column(
+        children: [
+          // Premium AppBar
+          _buildPremiumAppBar(context),
+
+          // Main Content
+          Expanded(
+            child: Obx(() {
+              // Loading state
+              if (controller.isLoading.value && !controller.hasContent) {
+                return _buildLoadingState();
+              }
+
+              // Error state
+              if (controller.hasError.value && !controller.hasContent) {
+                return _buildErrorState();
+              }
+
+              // Empty state
+              if (!controller.hasContent) {
+                return _buildEmptyState();
+              }
+
+              // Content
+              return RefreshIndicator(
+                onRefresh: controller.refreshHomeData,
+                color: AppTheme.primaryColor,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Hero Banner
+                      _buildHeroBanner(),
+
+                      // Categories section
+                      if (controller.categories.isNotEmpty)
+                        _buildCategoriesSection(),
+
+                      // Featured Products section
+                      if (controller.featuredProducts.isNotEmpty)
+                        _buildProductSection(
+                          title: 'Featured Products',
+                          subtitle: 'Handpicked for you',
+                          products: controller.featuredProducts,
+                          icon: Icons.star_rounded,
+                          iconColor: AppTheme.secondaryColor,
+                        ),
+
+                      // Latest Products section
+                      if (controller.latestProducts.isNotEmpty)
+                        _buildProductSection(
+                          title: 'New Arrivals',
+                          subtitle: 'Fresh from the warehouse',
+                          products: controller.latestProducts,
+                          icon: Icons.new_releases_rounded,
+                          iconColor: AppTheme.accentColor,
+                        ),
+
+                      // Bottom padding
+                      const SizedBox(height: 100),
+                    ],
                   ),
-                );
-              }),
-            ),
-          ],
-        ),
+                ),
+              );
+            }),
+          ),
+        ],
       ),
     );
   }
   
   /// Premium AppBar with search bar
-  Widget _buildPremiumAppBar() {
+ /* Widget _buildPremiumAppBar() {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: AppTheme.primaryGradient,
       ),
-      child: Column(
-        children: [
-          // Top bar with logo and icons
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
-            child: Row(
-              children: [
-                // Logo/Brand
-                const Text(
-                  'Distributor',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.5,
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Top bar with logo and icons
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+              child: Row(
+                children: [
+                  // Logo/Brand
+                  const Text(
+                    'Distributor',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.5,
+                    ),
                   ),
-                ),
-                const Spacer(),
-                // Notification icon - REMOVED
-                // Cart icon - REMOVED
-              ],
+                  const Spacer(),
+                  // Notification icon - REMOVED
+                  // Cart icon - REMOVED
+                ],
+              ),
             ),
-          ),
-          // Search bar
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: GestureDetector(
-              onTap: _navigateToSearch,
-              child: Container(
-                height: 44,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    const SizedBox(width: 12),
-                    Icon(
-                      Icons.search,
-                      color: AppTheme.primaryColor,
-                      size: 22,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Search for products...',
-                      style: AppTheme.bodyMedium.copyWith(
-                        color: AppTheme.textTertiary,
+            // Search bar
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: GestureDetector(
+                onTap: _navigateToSearch,
+                child: Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
                       ),
-                    ),
-                    const Spacer(),
-                    Container(
-                      height: 24,
-                      width: 1,
-                      color: AppTheme.borderColor,
-                    ),
-                    const SizedBox(width: 12),
-                    Icon(
-                      Icons.mic_none_rounded,
-                      color: AppTheme.primaryColor,
-                      size: 22,
-                    ),
-                    const SizedBox(width: 12),
-                  ],
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 12),
+                      Icon(
+                        Icons.search,
+                        color: AppTheme.primaryColor,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Search for products...',
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: AppTheme.textTertiary,
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        height: 24,
+                        width: 1,
+                        color: AppTheme.borderColor,
+                      ),
+                      const SizedBox(width: 12),
+                      Icon(
+                        Icons.mic_none_rounded,
+                        color: AppTheme.primaryColor,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
+      ),
+    );
+  }*/
+  Widget _buildPremiumAppBar(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: AppTheme.primaryGradient,
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Title row
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              child: Row(
+                children: [
+                  const Text(
+                    'Distributor',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                  const Spacer(),
+                ],
+              ),
+            ),
+            // Search bar
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: GestureDetector(
+                onTap: _navigateToSearch,
+                child: Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 12),
+                      Icon(
+                        Icons.search,
+                        color: AppTheme.primaryColor,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Search for products...',
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: AppTheme.textTertiary,
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        height: 24,
+                        width: 1,
+                        color: AppTheme.borderColor,
+                      ),
+                      const SizedBox(width: 12),
+                      Icon(
+                        Icons.mic_none_rounded,
+                        color: AppTheme.primaryColor,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -465,9 +560,10 @@ class HomeView extends GetView<HomeController> {
               style: AppTheme.labelSmall.copyWith(
                 color: AppTheme.textPrimary,
                 fontWeight: FontWeight.w500,
+                decoration: TextDecoration.lineThrough,
               ),
               textAlign: TextAlign.center,
-              maxLines: 2,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ],
@@ -745,6 +841,40 @@ class HomeView extends GetView<HomeController> {
                         ),
                       ),
                     ),
+                  // Cart quantity badge
+                  Obx(() {
+                    final cartController = Get.find<CartController>();
+                    final qty = cartController.getQuantityInCart(product.id);
+                    if (qty > 0) {
+                      return Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            '$qty',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  }),
                 ],
               ),
             ),
