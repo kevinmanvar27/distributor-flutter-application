@@ -100,6 +100,7 @@ class ProductCard extends StatelessWidget {
                 padding: const EdgeInsets.all(AppTheme.spacingSm),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     // Brand name (if available)
                     if (brand != null && brand!.isNotEmpty)
@@ -117,16 +118,18 @@ class ProductCard extends StatelessWidget {
                     if (brand != null && brand!.isNotEmpty)
                       const SizedBox(height: 2),
                     // Product name
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: AppTheme.textPrimary,
-                        height: 1.2,
+                    Flexible(
+                      child: Text(
+                        name,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: AppTheme.textPrimary,
+                          height: 1.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                     // Spacer pushes price to bottom
                     const Spacer(),
@@ -134,7 +137,7 @@ class ProductCard extends StatelessWidget {
                     if (rating != null)
                       _buildRatingBadge(),
                     if (rating != null)
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 3),
                     // Price section
                     _buildPremiumPriceRow(),
                   ],
@@ -502,26 +505,37 @@ class ProductCard extends StatelessWidget {
             // Selling price
             Text(
               formattedSellingPrice,
-              style: AppTheme.priceStyle,
+              style: AppTheme.labelSmall,
             ),
             // MRP crossed out
             if (hasDiscount) ...[
               const SizedBox(width: 6),
               Text(
                 formattedMrp,
-                style: AppTheme.strikePrice,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: 0,
+                  height: 1.2,
+                  color: Color(0xFF9E9E9E),
+                  decoration: TextDecoration.lineThrough,
+                ),
               ),
             ],
           ],
         ),
         // Discount text
         if (hasDiscount && discount > 0)
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Text(
-              '${discount.toStringAsFixed(0)}% off',
-              style: AppTheme.discountStyle,
+          Text(
+            '${discount.toStringAsFixed(0)}% off',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0,
+              height: 1.2,
+              color: Color(0xFF388E3C),
             ),
+
           ),
       ],
     );
