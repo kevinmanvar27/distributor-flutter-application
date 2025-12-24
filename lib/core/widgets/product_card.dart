@@ -73,6 +73,9 @@ class ProductCard extends StatelessWidget {
   }
   
   Widget _buildGridCard(BuildContext context) {
+    final formattedSellingPrice = '₹${sellingPrice.toStringAsFixed(0)}';
+    final formattedMrp = '₹${mrp.toStringAsFixed(0)}';
+    final discount = discountPercent ?? calculatedDiscount;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -132,14 +135,36 @@ class ProductCard extends StatelessWidget {
                       ),
                     ),
                     // Spacer pushes price to bottom
-                    const Spacer(),
+                    // const Spacer(),
                     // Rating (if available)
                     if (rating != null)
                       _buildRatingBadge(),
-                    if (rating != null)
-                      const SizedBox(height: 3),
+                    // if (rating != null)
+                    //   const SizedBox(height: 3),
                     // Price section
-                    _buildPremiumPriceRow(),
+                    // _buildPremiumPriceRow(),
+
+                    Text(
+                      formattedSellingPrice,
+                      style: AppTheme.labelLarge,
+                    ),
+                    // MRP crossed out
+                    if (hasDiscount) ...[
+                      const SizedBox(width: 6),
+                      Text(
+                        formattedMrp,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w400,
+                          letterSpacing: 0,
+                          height: 1.2,
+                          color: Color(0xFF9E9E9E),
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ),
+                    ],
+
+
                   ],
                 ),
               ),
@@ -154,6 +179,9 @@ class ProductCard extends StatelessWidget {
   }
   
   Widget _buildListCard(BuildContext context) {
+    final formattedSellingPrice = '₹${sellingPrice.toStringAsFixed(0)}';
+    final formattedMrp = '₹${mrp.toStringAsFixed(0)}';
+    final discount = discountPercent ?? calculatedDiscount;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -464,7 +492,7 @@ class ProductCard extends StatelessWidget {
           onTap: onAddToCart,
           child: Padding(
             padding: const EdgeInsets.symmetric(
-              vertical: AppTheme.spacingSm,
+              vertical: 12,
               horizontal: AppTheme.spacingSm,
             ),
             child: Row(
@@ -492,7 +520,7 @@ class ProductCard extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildRatingBadge() {
     return Row(
       children: [
@@ -554,7 +582,7 @@ class ProductCard extends StatelessWidget {
             // Selling price
             Text(
               formattedSellingPrice,
-              style: AppTheme.labelSmall,
+              style: AppTheme.labelLarge,
             ),
             // MRP crossed out
             if (hasDiscount) ...[

@@ -200,67 +200,72 @@ class MyInvoicesController extends GetxController {
         return;
       }
       
-      // Parse response - API returns ProformaInvoices structure
-      // Handle both String and Map responses
-      final apiResponse = (response.data is String) 
-          ? api_invoice.proformaInvoicesFromJson(response.data)
-          : api_invoice.proformaInvoicesFromJson(jsonEncode(response.data));
+      debugPrint('API Response: ${response.data}');
+      // Parse response directly into GenerateInvoice format
+      // The API response structure is: {success, data: {invoice, data}, message}
+      final responseMap = response.data is String 
+          ? json.decode(response.data) 
+          : response.data;
       
-      if (apiResponse.success) {
-        // Convert API response to GenerateInvoice structure expected by InvoiceView
-        // Note: API structure (ProformaInvoices) differs from InvoiceView expectations
+      if (responseMap['success'] == true) {
+        debugPrint('Success! Parsing invoice data...');
+        
+        // Create GenerateInvoice from API response
         final generateInvoice = cart_invoice.GenerateInvoice(
           success: true,
-          message: apiResponse.message,
+          message: responseMap['message'] ?? 'Invoice retrieved successfully',
           data: cart_invoice.GenerateInvoiceData(
             invoice: cart_invoice.Invoice(
-              id: apiResponse.data.id,
-              invoiceNumber: apiResponse.data.invoiceNumber,
-              userId: apiResponse.data.userId,
-              totalAmount: apiResponse.data.totalAmount,
-              invoiceData: jsonEncode(apiResponse.data.invoiceData.toJson()),
-              status: apiResponse.data.status,
-              createdAt: apiResponse.data.createdAt,
-              updatedAt: apiResponse.data.updatedAt,
+              id: responseMap['data']['invoice']['id'],
+              invoiceNumber: responseMap['data']['invoice']['invoice_number'],
+              userId: responseMap['data']['invoice']['user_id'],
+              totalAmount: responseMap['data']['invoice']['total_amount']?.toString() ?? '0',
+              invoiceData: jsonEncode(responseMap['data']['data']),
+              status: responseMap['data']['invoice']['status'],
+              createdAt: DateTime.parse(responseMap['data']['invoice']['created_at']),
+              updatedAt: DateTime.parse(responseMap['data']['invoice']['updated_at']),
             ),
             invoiceData: cart_invoice.InvoiceData(
-              // Convert API cart items to expected format
-              cartItems: apiResponse.data.invoiceData.cartItems.map((item) {
+              cartItems: (responseMap['data']['data']['cart_items'] as List).map((item) {
                 return cart_invoice.CartItem(
-                  id: item.productId, // Use productId as id
-                  productId: item.productId,
-                  productName: item.name,
-                  productDescription: '', // API doesn't provide description
-                  quantity: item.quantity,
-                  price: item.price.toString(),
-                  total: (item.quantity * item.price).toDouble(),
+                  id: item['product_id'] ?? 0,
+                  productId: item['product_id'] ?? 0,
+                  productName: item['name'] ?? '',
+                  productDescription: '',
+                  quantity: item['quantity'] ?? 0,
+                  price: item['price']?.toString() ?? '0',
+                  total: ((item['quantity'] ?? 0) * (item['price'] ?? 0)).toDouble(),
                 );
               }).toList(),
-              total: apiResponse.data.invoiceData.total,
-              // Use createdAt as invoiceDate since API doesn't provide separate invoice date
-              invoiceDate: apiResponse.data.createdAt,
-              // Convert User to Customer
+              total: (responseMap['data']['data']['total'] ?? 0).toDouble(),
+              invoiceDate: DateTime.parse(responseMap['data']['invoice']['created_at']),
               customer: cart_invoice.Customer(
-                id: apiResponse.data.user.id,
-                name: apiResponse.data.user.name,
-                email: apiResponse.data.user.email,
-                address: apiResponse.data.user.address,
-                mobileNumber: apiResponse.data.user.mobileNumber,
+                id: 0,
+                name: 'N/A',
+                email: 'N/A',
+                address: null,
+                mobileNumber: null,
               ),
             ),
           ),
         );
         
+        debugPrint('Invoice parsed successfully: ${generateInvoice.data.invoice.invoiceNumber}');
+        debugPrint('Items count: ${generateInvoice.data.invoiceData.cartItems.length}');
+        
         // Navigate to invoice detail screen
         Get.toNamed(Routes.invoice, arguments: generateInvoice);
       } else {
-        throw Exception(apiResponse.message);
+        throw Exception(responseMap['message'] ?? 'Failed to load invoice');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       // Close loading dialog if still open
       if (Get.isDialogOpen ?? false) {
         Get.back();
       }
+      
+      debugPrint('Error loading invoice: $e');
+      debugPrint('Stack trace: $stackTrace');
       
       Get.snackbar(
         'Error',

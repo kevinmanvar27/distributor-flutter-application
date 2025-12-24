@@ -39,7 +39,8 @@ class GenerateInvoiceData {
 
   factory GenerateInvoiceData.fromJson(Map<String, dynamic> json) => GenerateInvoiceData(
     invoice: Invoice.fromJson(json["invoice"]),
-    invoiceData: InvoiceData.fromJson(json["invoice_data"]),
+    // Handle both "data" and "invoice_data" keys from different API responses
+    invoiceData: InvoiceData.fromJson(json["data"] ?? json["invoice_data"]),
   );
 
   Map<String, dynamic> toJson() => {
@@ -70,14 +71,14 @@ class Invoice {
   });
 
   factory Invoice.fromJson(Map<String, dynamic> json) => Invoice(
-    invoiceNumber: json["invoice_number"],
-    userId: json["user_id"],
-    totalAmount: json["total_amount"],
-    invoiceData: json["invoice_data"],
-    status: json["status"],
+    invoiceNumber: json["invoice_number"]?.toString() ?? '',
+    userId: json["user_id"] ?? 0,
+    totalAmount: json["total_amount"]?.toString() ?? '0',
+    invoiceData: json["invoice_data"]?.toString() ?? '',
+    status: json["status"]?.toString() ?? '',
     updatedAt: DateTime.parse(json["updated_at"]),
     createdAt: DateTime.parse(json["created_at"]),
-    id: json["id"],
+    id: json["id"] ?? 0,
   );
 
   Map<String, dynamic> toJson() => {
@@ -106,10 +107,24 @@ class InvoiceData {
   });
 
   factory InvoiceData.fromJson(Map<String, dynamic> json) => InvoiceData(
-    cartItems: List<CartItem>.from(json["cart_items"].map((x) => CartItem.fromJson(x))),
-    total: json["total"]?.toDouble(),
-    invoiceDate: DateTime.parse(json["invoice_date"]),
-    customer: Customer.fromJson(json["customer"]),
+    cartItems: List<CartItem>.from(
+      (json["cart_items"] ?? []).map((x) => CartItem.fromJson(x))
+    ),
+    total: (json["total"] ?? 0).toDouble(),
+    // Use current date if invoice_date is not provided
+    invoiceDate: json["invoice_date"] != null 
+        ? DateTime.parse(json["invoice_date"])
+        : DateTime.now(),
+    // Create a default customer if not provided
+    customer: json["customer"] != null 
+        ? Customer.fromJson(json["customer"])
+        : Customer(
+            id: 0,
+            name: 'N/A',
+            email: 'N/A',
+            address: null,
+            mobileNumber: null,
+          ),
   );
 
   Map<String, dynamic> toJson() => {
@@ -140,13 +155,16 @@ class CartItem {
   });
 
   factory CartItem.fromJson(Map<String, dynamic> json) => CartItem(
-    id: json["id"],
-    productId: json["product_id"],
-    productName: json["product_name"],
-    productDescription: json["product_description"],
-    quantity: json["quantity"],
-    price: json["price"],
-    total: json["total"]?.toDouble(),
+    id: json["id"] ?? json["product_id"] ?? 0,
+    productId: json["product_id"] ?? 0,
+    // Handle both "name" and "product_name" fields from different API responses
+    productName: json["product_name"]?.toString() ?? json["name"]?.toString() ?? '',
+    productDescription: json["product_description"]?.toString() ?? '',
+    quantity: json["quantity"] ?? 0,
+    price: json["price"]?.toString() ?? '0',
+    // Calculate total if not provided (quantity * price)
+    total: json["total"]?.toDouble() ?? 
+           ((json["quantity"] ?? 0) * (json["price"] ?? 0)).toDouble(),
   );
 
   Map<String, dynamic> toJson() => {

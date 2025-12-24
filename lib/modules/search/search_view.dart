@@ -144,12 +144,12 @@ class SearchView extends GetView<search.SearchController> {
           ),
           
           // Filter chips (placeholder for future)
-          Obx(() {
+          /*Obx(() {
             if (controller.hasSearched.value && controller.searchResults.isNotEmpty) {
               return _buildFilterChips();
             }
             return const SizedBox.shrink();
-          }),
+          }),*/
         ],
       ),
     );
@@ -727,7 +727,7 @@ class SearchView extends GetView<search.SearchController> {
                 )),
                 
                 // View toggle (placeholder)
-                Row(
+                /*Row(
                   children: [
                     IconButton(
                       icon: Icon(
@@ -751,7 +751,7 @@ class SearchView extends GetView<search.SearchController> {
                       constraints: const BoxConstraints(),
                     ),
                   ],
-                ),
+                ),*/
               ],
             ),
           ),

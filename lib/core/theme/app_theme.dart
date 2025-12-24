@@ -277,6 +277,13 @@ class AppTheme {
     height: 1.33,
     color: _defaultTextPrimary,
   );
+  static const TextStyle headlineSmall2 = TextStyle(
+    fontSize: 19,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0,
+    height: 1.33,
+    color: _defaultTextPrimary,
+  );
 
   /// Heading aliases
   static const TextStyle headingLarge = headlineLarge;
@@ -304,6 +311,14 @@ class AppTheme {
   /// Title small - 14px
   static const TextStyle titleSmall = TextStyle(
     fontSize: 14,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0.1,
+    height: 1.43,
+    color: _defaultTextPrimary,
+  );
+
+  static const TextStyle titleSmall2 = TextStyle(
+    fontSize: 12,
     fontWeight: FontWeight.w600,
     letterSpacing: 0.1,
     height: 1.43,

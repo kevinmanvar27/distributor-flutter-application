@@ -392,15 +392,23 @@ class ProductDetailView extends GetView<ProductDetailController> {
           // Product name
           Text(
             product.name,
-            style: AppTheme.headlineSmall.copyWith(
+            style: AppTheme.titleMedium.copyWith(
               fontWeight: FontWeight.w700,
               height: 1.3,
             ),
           ),
           const SizedBox(height: AppTheme.spacingSm),
+
+          Text(
+            product.description,
+            style: AppTheme.bodySmall.copyWith(
+              color: AppTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: AppTheme.spacingSm),
           
           // Rating row (placeholder)
-          Row(
+          /*Row(
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -440,7 +448,7 @@ class ProductDetailView extends GetView<ProductDetailController> {
               ),
             ],
           ),
-          const SizedBox(height: AppTheme.spacingMd),
+          const SizedBox(height: AppTheme.spacingMd),*/
           
           // Divider
           Container(
@@ -456,7 +464,7 @@ class ProductDetailView extends GetView<ProductDetailController> {
               // Selling price (main)
               Text(
                 '₹${product.sellingPriceValue.toStringAsFixed(0)}',
-                style: AppTheme.headlineMedium.copyWith(
+                style: AppTheme.headlineSmall2.copyWith(
                   fontWeight: FontWeight.w800,
                   color: AppTheme.textPrimary,
                 ),
@@ -467,8 +475,8 @@ class ProductDetailView extends GetView<ProductDetailController> {
                 const SizedBox(width: AppTheme.spacingSm),
                 Text(
                   '₹${product.mrpValue.toStringAsFixed(0)}',
-                  style: AppTheme.titleMedium.copyWith(
-                    color: AppTheme.textSecondary,
+                  style: AppTheme.titleSmall.copyWith(
+                    color: AppTheme.textTertiary,
                     decoration: TextDecoration.lineThrough,
                     decorationColor: AppTheme.textSecondary,
                   ),
@@ -984,60 +992,58 @@ class ProductDetailView extends GetView<ProductDetailController> {
           ),
         ],
       ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            // Add to Cart button
-            Expanded(
-              child: Obx(() => Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppTheme.primaryColor, width: 2),
+      child: Row(
+        children: [
+          // Add to Cart button
+          Expanded(
+            child: Obx(() => Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: AppTheme.primaryColor, width: 2),
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: controller.isAddingToCart.value ? null : controller.addToCart,
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: controller.isAddingToCart.value ? null : controller.addToCart,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      child: controller.isAddingToCart.value
-                          ? Center(
-                              child: SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    child: controller.isAddingToCart.value
+                        ? Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                              ),
+                            ),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.add_shopping_cart_rounded,
+                                color: AppTheme.primaryColor,
+                                size: 20,
+                              ),
+                              const SizedBox(width: AppTheme.spacingXs),
+                              Text(
+                                'Add to Cart',
+                                style: AppTheme.titleSmall.copyWith(
+                                  color: AppTheme.primaryColor,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
-                            )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.add_shopping_cart_rounded,
-                                  color: AppTheme.primaryColor,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: AppTheme.spacingXs),
-                                Text(
-                                  'Add to Cart',
-                                  style: AppTheme.titleSmall.copyWith(
-                                    color: AppTheme.primaryColor,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
-                            ),
-                    ),
+                            ],
+                          ),
                   ),
                 ),
-              )),
-            ),
+              ),
+            )),
+          ),
 
-          ],
-        ),
+        ],
       ),
     );
   }

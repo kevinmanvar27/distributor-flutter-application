@@ -53,11 +53,23 @@ class InvoiceController extends GetxController {
       
       if (args is GenerateInvoice) {
         _invoiceResponse.value = args;
-        debugPrint('InvoiceController: Invoice loaded - ${args.data.invoice.invoiceNumber}');
-        debugPrint('InvoiceController: Items count - ${args.data.invoiceData.cartItems.length}');
+        debugPrint('InvoiceController: Invoice loaded successfully!');
+        debugPrint('  - Invoice Number: ${args.data.invoice.invoiceNumber}');
+        debugPrint('  - Status: ${args.data.invoice.status}');
+        debugPrint('  - Total Amount: ${args.data.invoice.totalAmount}');
+        debugPrint('  - Items count: ${args.data.invoiceData.cartItems.length}');
+        debugPrint('  - Invoice Date: ${args.data.invoiceData.invoiceDate}');
+        debugPrint('  - Customer: ${args.data.invoiceData.customer.name}');
+        
+        // Print each item for debugging
+        for (var i = 0; i < args.data.invoiceData.cartItems.length; i++) {
+          final item = args.data.invoiceData.cartItems[i];
+          debugPrint('  - Item $i: ${item.productName} x${item.quantity} @ ${item.price} = ${item.total}');
+        }
+        
         hasError.value = false;
       } else {
-        debugPrint('InvoiceController: Invalid arguments received');
+        debugPrint('InvoiceController: Invalid arguments received - Expected GenerateInvoice, got ${args.runtimeType}');
         hasError.value = true;
         Get.snackbar(
           'Error',
@@ -67,11 +79,13 @@ class InvoiceController extends GetxController {
           colorText: Colors.white,
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('InvoiceController: Error loading invoice - $e');
+      debugPrint('Stack trace: $stackTrace');
       hasError.value = true;
     } finally {
       isLoading.value = false;
+      debugPrint('InvoiceController: Loading complete - isLoading: false, hasError: ${hasError.value}');
     }
   }
 

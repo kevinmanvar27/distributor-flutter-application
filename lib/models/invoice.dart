@@ -57,7 +57,7 @@ class Data {
     userId: json["user_id"] ?? 0,
     sessionId: json["session_id"] ?? '',
     invoiceNumber: json["invoice_number"] ?? '',
-    totalAmount: json["total_amount"] ?? '0',
+    totalAmount: json["total_amount"]?.toString() ?? '0',
     invoiceData: json["invoice_data"] != null 
         ? InvoiceData.fromJson(json["invoice_data"]) 
         : InvoiceData(cartItems: [], subtotal: 0, discountPercentage: 0, discountAmount: 0, shipping: 0, taxPercentage: 0, taxAmount: 0, total: 0.0, notes: ''),

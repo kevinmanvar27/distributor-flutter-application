@@ -7,14 +7,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/product_card.dart';
+import '../../routes/app_routes.dart';
+import '../cart/cart_controller.dart';
 import 'subcategories_controller.dart';
 
 class SubcategoriesView extends GetView<SubcategoriesController> {
   const SubcategoriesView({super.key});
-  
+
   // Sidebar width constant
   static const double _sidebarWidth = 90.0;
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,20 +24,20 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
         children: [
           // Premium Gradient AppBar (fixed at top)
           _buildAppBar(),
-          
+
           // Main content with persistent sidebar
           Expanded(
             child: Row(
               children: [
                 // Persistent Sidebar (always visible)
                 _buildPersistentSidebar(),
-                
+
                 // Vertical divider
                 Container(
                   width: 1,
                   color: AppTheme.dividerColor,
                 ),
-                
+
                 // Main content area (products)
                 Expanded(
                   child: _buildMainContent(),
@@ -94,7 +96,7 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              // Search button (optional)
+              // Search button
               Container(
                 margin: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
@@ -107,9 +109,7 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
                     color: Colors.white,
                     size: 22,
                   ),
-                  onPressed: () {
-                    // TODO: Implement search
-                  },
+                  onPressed: () => Get.toNamed(Routes.search),
                 ),
               ),
             ],
@@ -118,10 +118,6 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
       ),
     );
   }
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Persistent Sidebar (Blinkit-style)
-  // ─────────────────────────────────────────────────────────────────────────────
 
   Widget _buildPersistentSidebar() {
     return Container(
@@ -143,7 +139,7 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
             ),
           );
         }
-        
+
         return ListView.builder(
           padding: const EdgeInsets.symmetric(vertical: 8),
           itemCount: controller.subcategories.length + 1, // +1 for "All"
@@ -158,7 +154,7 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
                 onTap: () => controller.selectSubcategory(null),
               );
             }
-            
+
             // Subcategory items
             final subcategory = controller.subcategories[index - 1];
             return _buildSidebarItem(
@@ -187,7 +183,7 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
         margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
         decoration: BoxDecoration(
-          color: isSelected 
+          color: isSelected
               ? Colors.white
               : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
@@ -231,7 +227,7 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
               child: Icon(
                 icon,
                 size: 18,
-                color: isSelected 
+                color: isSelected
                     ? AppTheme.dynamicPrimaryColor
                     : AppTheme.textSecondary,
               ),
@@ -243,7 +239,7 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected 
+                color: isSelected
                     ? AppTheme.dynamicPrimaryColor
                     : AppTheme.textPrimary,
                 height: 1.2,
@@ -260,7 +256,7 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
                 style: TextStyle(
                   fontSize: 9,
                   fontWeight: FontWeight.w500,
-                  color: isSelected 
+                  color: isSelected
                       ? AppTheme.dynamicPrimaryColor.withValues(alpha: 0.7)
                       : AppTheme.textTertiary,
                 ),
@@ -282,17 +278,17 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
       if (controller.isLoading.value && controller.allProducts.isEmpty) {
         return _buildLoadingState();
       }
-      
+
       // Error state
       if (controller.hasError.value && controller.allProducts.isEmpty) {
         return _buildErrorState();
       }
-      
+
       // Empty state
       if (controller.allProducts.isEmpty) {
         return _buildEmptyState();
       }
-      
+
       // Show products grid
       return _buildProductsContent();
     });
@@ -569,14 +565,14 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
               ),
             ),
           ),
-          
+
           // Products Grid
           SliverPadding(
             padding: const EdgeInsets.all(AppTheme.spacingMd),
             sliver: Obx(() => SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 0.62,
+                childAspectRatio: MediaQuery.of(Get.context!).size.height < 800 ? 0.48 : 0.55,
                 crossAxisSpacing: AppTheme.spacingMd,
                 mainAxisSpacing: AppTheme.spacingMd,
               ),
@@ -594,6 +590,7 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
                     description: product.description,
                     variant: ProductCardVariant.grid,
                     onTap: () => controller.onProductTap(product),
+                    onAddToCart: () => controller.addToCart(product),
                     showAddToCart: true,
                     showFavorite: true,
                     heroTagPrefix: 'subcategory',
@@ -603,7 +600,7 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
               ),
             )),
           ),
-          
+
           // Bottom padding
           const SliverToBoxAdapter(
             child: SizedBox(height: AppTheme.spacingXl),
@@ -616,7 +613,7 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
   /// Get icon for category/subcategory based on name
   IconData _getCategoryIcon(String name) {
     final nameLower = name.toLowerCase();
-    
+
     if (nameLower.contains('tool')) return Icons.build_outlined;
     if (nameLower.contains('electric')) return Icons.electrical_services_outlined;
     if (nameLower.contains('plumb')) return Icons.plumbing_outlined;
@@ -627,8 +624,10 @@ class SubcategoriesView extends GetView<SubcategoriesController> {
     if (nameLower.contains('wire')) return Icons.cable_outlined;
     if (nameLower.contains('switch')) return Icons.toggle_on_outlined;
     if (nameLower.contains('fan')) return Icons.air_outlined;
-    
+
     return Icons.category_outlined;
   }
-  
+
 }
+
+

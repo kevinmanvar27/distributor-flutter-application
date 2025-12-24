@@ -221,12 +221,12 @@ class ProfileView extends GetView<ProfileController> {
             label: 'Mobile Number',
             value:  controller.userMobileNumber,
           ),
-          const Divider(height: 1),
+          /*const Divider(height: 1),
           _buildInfoTile(
             icon: Icons.cake_outlined,
             label: 'Date of Birth',
             value: controller.userDateOfBirth,
-          ),
+          ),*/
           const Divider(height: 1),
           _buildInfoTile(
             icon: Icons.location_on_outlined,
@@ -303,7 +303,7 @@ class ProfileView extends GetView<ProfileController> {
           ),
           const SizedBox(height: AppTheme.spacingMD),
           // Date of Birth field
-          GestureDetector(
+          /*GestureDetector(
             onTap: controller.selectDateOfBirth,
             child: AbsorbPointer(
               child: CustomTextField(
@@ -315,7 +315,7 @@ class ProfileView extends GetView<ProfileController> {
               ),
             ),
           ),
-          const SizedBox(height: AppTheme.spacingMD),
+          const SizedBox(height: AppTheme.spacingMD),*/
           // Address field
           CustomTextField(
             controller: controller.addressController,

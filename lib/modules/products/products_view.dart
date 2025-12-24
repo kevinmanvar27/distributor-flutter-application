@@ -448,9 +448,9 @@ class ProductsView extends GetView<ProductsController> {
               color: AppTheme.primaryColor,
               child: Obx(() => GridView.builder(
                 padding: const EdgeInsets.all(12),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: 0.62,
+                  childAspectRatio: MediaQuery.of(Get.context!).size.height < 800 ? 0.60 : 0.62,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
                 ),

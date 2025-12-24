@@ -165,7 +165,7 @@ class MyInvoicesView extends GetView<MyInvoicesController> {
     
     // Get status color
     final statusColor = controller.getStatusColor(status);
-    
+    debugPrint("jijfcia${invoiceNumber}");
     return Container(
       margin: const EdgeInsets.only(bottom: AppTheme.spacingMD),
       decoration: BoxDecoration(
@@ -189,6 +189,7 @@ class MyInvoicesView extends GetView<MyInvoicesController> {
                   children: [
                     Expanded(
                       child: Text(
+
                         'Invoice #$invoiceNumber',
                         style: AppTheme.bodyLarge.copyWith(
                           fontWeight: FontWeight.w600,
@@ -250,6 +251,7 @@ class MyInvoicesView extends GetView<MyInvoicesController> {
   }
 
   Widget _buildStatusBadge(String status, Color color) {
+
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 10,

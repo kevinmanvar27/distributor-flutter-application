@@ -8,6 +8,8 @@ import 'package:get/get.dart';
 import '../../core/services/api_service.dart';
 import '../../models/catagories.dart';
 import '../../models/Home.dart' show Category;
+import '../cart/cart_controller.dart';
+import '../../models/category.dart' show ProductItem, ProductImage;
 
 class SubcategoriesController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
@@ -152,4 +154,39 @@ class SubcategoriesController extends GetxController {
   
   /// Display title
   String get displayTitle => categoryName.value.isNotEmpty ? categoryName.value : 'Subcategories';
+  
+  Future<void> addToCart(Product product, {int quantity = 1}) async {
+    final cartController = Get.find<CartController>();
+    final item = ProductItem(
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      description: product.description,
+      mrp: product.mrp,
+      sellingPrice: product.sellingPrice,
+      inStock: product.inStock,
+      stockQuantity: product.stockQuantity,
+      status: product.status,
+      mainPhotoId: product.mainPhotoId,
+      productGallery: product.productGallery,
+      productCategories: product.productCategories,
+      metaTitle: product.metaTitle,
+      metaDescription: product.metaDescription,
+      metaKeywords: product.metaKeywords,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
+      discountedPrice: product.sellingPrice,
+      mainPhoto: ProductImage(
+        id: product.mainPhoto.id,
+        name: product.mainPhoto.name,
+        fileName: product.mainPhoto.fileName,
+        mimeType: product.mainPhoto.mimeType,
+        path: product.mainPhoto.path,
+        size: product.mainPhoto.size,
+        createdAt: product.mainPhoto.createdAt,
+        updatedAt: product.mainPhoto.updatedAt,
+      ),
+    );
+    await cartController.addToCart(item, quantity: quantity);
+  }
 }

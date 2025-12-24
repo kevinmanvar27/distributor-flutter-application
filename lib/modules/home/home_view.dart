@@ -80,8 +80,8 @@ class HomeView extends GetView<HomeController> {
                           title: 'Featured Products',
                           subtitle: 'Handpicked for you',
                           products: controller.featuredProducts,
-                          icon: Icons.star_rounded,
-                          iconColor: AppTheme.secondaryColor,
+                          icon: Icons.new_releases_rounded,
+                          iconColor: AppTheme.accentColor,
                         ),
 
                       // Latest Products section
@@ -363,14 +363,14 @@ class HomeView extends GetView<HomeController> {
   Widget _buildHeroBanner() {
     return Container(
       height: 160,
-      margin: const EdgeInsets.all(12),
+      width: double.infinity,
+      margin: EdgeInsets.zero,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFF667eea), Color(0xFF764ba2)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         boxShadow: AppTheme.shadowMd,
       ),
       child: Stack(
@@ -560,7 +560,6 @@ class HomeView extends GetView<HomeController> {
               style: AppTheme.labelSmall.copyWith(
                 color: AppTheme.textPrimary,
                 fontWeight: FontWeight.w500,
-                decoration: TextDecoration.lineThrough,
               ),
               textAlign: TextAlign.center,
               maxLines: 1,
@@ -727,7 +726,7 @@ class HomeView extends GetView<HomeController> {
           const SizedBox(height: 12),
           // Products horizontal list
           SizedBox(
-            height: 260,
+            height: 300,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -747,13 +746,18 @@ class HomeView extends GetView<HomeController> {
   Widget _buildProductCard(Product product) {
     // Calculate discount percentage if applicable
     double? discountPercent;
+
     final mrpValue = double.tryParse(product.mrp) ?? 0;
-    if (product.discountedPrice is num && mrpValue > 0) {
-      final discounted = (product.discountedPrice as num).toDouble();
-      if (discounted < mrpValue) {
-        discountPercent = ((mrpValue - discounted) / mrpValue * 100);
-      }
+    final sellingPriceValue = double.tryParse(product.sellingPrice) ?? 0;
+    
+    final sellingPrice = (sellingPriceValue > 0) ? sellingPriceValue : mrpValue;
+    
+    if (mrpValue > 0 && sellingPrice < mrpValue) {
+      discountPercent = ((mrpValue - sellingPrice) / mrpValue * 100);
     }
+    final formattedSellingPrice = '₹${_formatPrice(sellingPrice)}';
+    final formattedMrp = '₹${_formatPrice(mrpValue)}';
+    final hasDiscount = discountPercent != null && discountPercent > 0;
     
     return GestureDetector(
       onTap: () => _navigateToProductDetail(product.id),
@@ -777,9 +781,8 @@ class HomeView extends GetView<HomeController> {
           children: [
             // Product image with badges
             Expanded(
-              flex: 3,
-              child: Stack(
-                children: [
+              flex: 2,
+              child: Stack(                children: [
                   // Image
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(
@@ -880,7 +883,7 @@ class HomeView extends GetView<HomeController> {
             ),
             // Product details
             Expanded(
-              flex: 2,
+              flex: 1,
               child: Padding(
                 padding: const EdgeInsets.all(10),
                 child: Column(
@@ -894,45 +897,100 @@ class HomeView extends GetView<HomeController> {
                         fontWeight: FontWeight.w500,
                         height: 1.2,
                       ),
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const Spacer(),
+                    const SizedBox(height: 8),
                     // Price section
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          '₹${_formatPrice(discountPercent != null ? (product.discountedPrice as num).toDouble() : mrpValue)}',
+                          formattedSellingPrice,
                           style: AppTheme.priceSmall.copyWith(
                             color: AppTheme.textPrimary,
                           ),
                         ),
-                        if (discountPercent != null && discountPercent > 0) ...[
+                        // MRP crossed out
+                        if (hasDiscount) ...[
                           const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              '₹${_formatPrice(mrpValue)}',
-                              style: AppTheme.strikePrice,
-                              overflow: TextOverflow.ellipsis,
+                          Text(
+                            formattedMrp,
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w400,
+                              letterSpacing: 0,
+                              height: 1.2,
+                              color: Color(0xFF9E9E9E),
+                              decoration: TextDecoration.lineThrough,
                             ),
                           ),
                         ],
                       ],
                     ),
                     // Discount text
-                    if (discountPercent != null && discountPercent > 0)
+                    if (hasDiscount)
                       Padding(
                         padding: const EdgeInsets.only(top: 2),
                         child: Text(
-                          'Save ₹${_formatPrice(mrpValue - (product.discountedPrice as num).toDouble())}',
+                          'Save ₹${_formatPrice(mrpValue - sellingPrice)}',
                           style: AppTheme.discountStyle.copyWith(fontSize: 11),
                         ),
                       ),
+
+                    /*else
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          'Save ₹',
+                          style: AppTheme.discountStyle.copyWith(fontSize: 11),
+                        ),
+                      ),*/
                   ],
                 ),
               ),
             ),
+            if (product.inStock)
+              Container(
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  border: Border(
+                    top: BorderSide(
+                      color: Color(0xFFE0E0E0),
+                      width: 1,
+                    ),
+                  ),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => controller.addToCart(product),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.add_shopping_cart_rounded,
+                            color: AppTheme.primaryColor,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Add to Cart',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.primaryColor,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
