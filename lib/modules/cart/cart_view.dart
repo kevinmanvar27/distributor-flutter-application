@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/widgets/authenticated_image.dart';
 import '../../models/cart_item.dart';
 import '../main/main_controller.dart';
 import 'cart_controller.dart';
@@ -566,23 +567,16 @@ class CartView extends GetView<CartController> {
           borderRadius: BorderRadius.circular(10),
         ),
         child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-            ? Image.network(
-                item.imageUrl!,
+            ? AuthenticatedImage(
+                imageUrl: item.imageUrl!,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _buildImagePlaceholder(),
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Center(
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppTheme.primaryColor.withValues(alpha: 0.5),
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                          : null,
-                    ),
-                  );
-                },
+                placeholder: Center(
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppTheme.primaryColor.withValues(alpha: 0.5),
+                  ),
+                ),
+                errorWidget: _buildImagePlaceholder(),
               )
             : _buildImagePlaceholder(),
       ),

@@ -21,8 +21,6 @@ import '../modules/product_detail/product_detail_view.dart';
 import '../modules/product_detail/product_detail_binding.dart';
 import '../modules/notifications/notifications_view.dart';
 import '../modules/notifications/notifications_binding.dart';
-import '../modules/wishlist/wishlist_view.dart';
-import '../modules/wishlist/wishlist_binding.dart';
 import '../modules/invoice/invoice_view.dart';
 import '../modules/invoice/invoice_binding.dart';
 import '../modules/invoice/my_invoices_view.dart';
@@ -32,12 +30,15 @@ import '../modules/subcategories/subcategories_binding.dart';
 import '../modules/subcategories/subcategory_products_view.dart';
 import '../modules/search/search_view.dart';
 import '../modules/search/search_binding.dart';
+import '../modules/staff/staff_register_view.dart';
+import '../modules/debug/image_test_view.dart';
 
 /// Route names as constants for type-safe navigation
 abstract class Routes {
   static const splash = '/';
   static const login = '/login';
   static const register = '/register';
+  static const staffRegister = '/staff-register';
   static const forgotPassword = '/forgot-password';
   static const otpVerification = '/otp-verification';
   static const resetPassword = '/reset-password';
@@ -58,10 +59,10 @@ abstract class Routes {
   static const addresses = '/addresses';
   static const paymentMethods = '/payment-methods';
   static const notifications = '/notifications';
-  static const wishlist = '/wishlist';
   static const invoices = '/invoices'; // Invoice list
   static const invoice = '/invoice'; // Single invoice detail
   static const support = '/support';
+  static const imageTest = '/image-test'; // Debug screen for testing images
 }
 
 /// App pages configuration
@@ -89,6 +90,13 @@ class AppPages {
     GetPage(
       name: Routes.register,
       page: () => const RegisterView(),
+      binding: AuthBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: Routes.staffRegister,
+      page: () => const StaffRegisterView(),
       binding: AuthBinding(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 300),
@@ -185,12 +193,6 @@ class AppPages {
       binding: NotificationsBinding(),
       transition: Transition.rightToLeft,
     ),
-    GetPage(
-      name: Routes.wishlist,
-      page: () => const WishlistView(),
-      binding: WishlistBinding(),
-      transition: Transition.rightToLeft,
-    ),
     // Invoice list
     GetPage(
       name: Routes.invoices,
@@ -210,6 +212,12 @@ class AppPages {
     GetPage(
       name: Routes.support,
       page: () => _buildPlaceholderPage('Help & Support', 'Get help with your orders'),
+      transition: Transition.rightToLeft,
+    ),
+    // Debug: Image Test Screen
+    GetPage(
+      name: Routes.imageTest,
+      page: () => const ImageTestView(),
       transition: Transition.rightToLeft,
     ),
   ];

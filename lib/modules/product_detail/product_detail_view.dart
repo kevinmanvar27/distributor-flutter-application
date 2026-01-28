@@ -14,7 +14,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/theme/app_theme.dart';
-import '../wishlist/wishlist_controller.dart';
+import '../../core/widgets/authenticated_image.dart';
+import '../cart/cart_controller.dart';
+import '../main/main_controller.dart';
 import 'product_detail_controller.dart';
 
 class ProductDetailView extends GetView<ProductDetailController> {
@@ -274,18 +276,18 @@ class ProductDetailView extends GetView<ProductDetailController> {
       
       // Action buttons with premium styling
       actions: [
-        // Favorite button with animation
-        Obx(() {
-          final wishlistController = Get.find<WishlistController>();
-          final isFavorite = wishlistController.isInWishlist(product.id);
-          return IconButton(
-            icon: Icon(
-              isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-              color: isFavorite ? AppTheme.errorColor : Colors.white,
-            ),
-            onPressed: () => wishlistController.toggleWishlist(product),
-          );
-        }),
+        // Cart button with badge
+        _buildCartButton(),
+        // Share button
+        IconButton(
+          icon: const Icon(
+            Icons.share_rounded,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Share.share('Check out this product: ${product.name}');
+          },
+        ),
       ],
       
       flexibleSpace: Container(
@@ -307,6 +309,70 @@ class ProductDetailView extends GetView<ProductDetailController> {
       ),
     );
   }
+
+  /// Cart button with badge for app bar
+  Widget _buildCartButton() {
+    return GetX<CartController>(
+      builder: (cartController) {
+        final itemCount = cartController.cartItems.length;
+        return GestureDetector(
+          onTap: () {
+            // Navigate to cart tab instead of separate route
+            try {
+              final mainController = Get.find<MainController>();
+              mainController.changeTab(2);
+              Get.until((route) => route.settings.name == '/main');
+            } catch (_) {
+              Get.toNamed('/cart');
+            }
+          },
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.shopping_cart_rounded,
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                ),
+                if (itemCount > 0)
+                  Positioned(
+                    right: -4,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        gradient: AppTheme.saleGradient,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 1.5),
+                      ),
+                      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                      child: Text(
+                        itemCount > 99 ? '99+' : itemCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
   
   /// Product image section with hero animation and discount badge
   Widget _buildProductImageSection(dynamic product) {
@@ -324,14 +390,17 @@ class ProductDetailView extends GetView<ProductDetailController> {
           Center(
             child: Hero(
               tag: 'products_${product.id}',
-              child: product.imageUrl != null
-                  ? Image.network(
-                      product.imageUrl!,
-                      fit: BoxFit.contain,
-                      height: 280,
-                      errorBuilder: (_, __, ___) => _buildImagePlaceholder(),
-                    )
-                  : _buildImagePlaceholder(),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                child: product.imageUrl != null && product.imageUrl!.isNotEmpty
+                    ? AuthenticatedImage(
+                        imageUrl: product.imageUrl!,
+                        fit: BoxFit.contain,
+                        placeholder: _buildImagePlaceholder(),
+                        errorWidget: _buildImagePlaceholder(),
+                      )
+                    : _buildImagePlaceholder(),
+              ),
             ),
           ),
           
@@ -457,13 +526,13 @@ class ProductDetailView extends GetView<ProductDetailController> {
           ),
           const SizedBox(height: AppTheme.spacingMd),
           
-          // Price section
+          // Price section - shows customer's discounted price
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // Selling price (main)
+              // Customer's discounted price (main)
               Text(
-                '₹${product.sellingPriceValue.toStringAsFixed(0)}',
+                '₹${product.discountedPriceValue.toStringAsFixed(0)}',
                 style: AppTheme.headlineSmall2.copyWith(
                   fontWeight: FontWeight.w800,
                   color: AppTheme.textPrimary,
@@ -1079,7 +1148,7 @@ class ProductDetailView extends GetView<ProductDetailController> {
     try {
       final text = '''Check out this product:
 ${product.name}
-Price: ₹${product.sellingPriceValue.toStringAsFixed(0)}
+Price: ₹${product.discountedPriceValue.toStringAsFixed(0)}
 ${product.imageUrl ?? ''}''';
       
       final result = await SharePlus.instance.share(

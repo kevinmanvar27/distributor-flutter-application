@@ -52,20 +52,33 @@ class ProductDetailController extends GetxController {
     }
   }
 
-  /// Load product from API
+  /// Load product from /customer/products/{id} API
+  /// Returns product with customer-specific discounted_price
   Future<void> loadProduct(String productId) async {
     try {
       isLoading.value = true;
       hasError.value = false;
       errorMessage.value = '';
       
-      final response = await _apiService.get('/products/$productId');
+      // Use customer products API - returns vendor-scoped product with discount
+      final response = await _apiService.get('/customer/products/$productId');
       
       if (response.statusCode == 200 && response.data != null) {
         final data = response.data;
-        final productData = data['data'] ?? data['product'] ?? data;
+        
+        // Handle response format: { success: true, data: { product } }
+        dynamic productData;
+        if (data['success'] == true && data['data'] != null) {
+          productData = data['data'];
+        } else {
+          productData = data['data'] ?? data['product'] ?? data;
+        }
+        
         product.value = ProductItem.fromJson(productData);
         _printProductImageUrl();
+        
+        // Log discount info
+        debugPrint('ProductDetail: Price: ${product.value?.sellingPrice}, Discounted: ${product.value?.discountedPrice}');
       } else {
         hasError.value = true;
         errorMessage.value = 'Product not found';
@@ -73,6 +86,7 @@ class ProductDetailController extends GetxController {
     } catch (e) {
       hasError.value = true;
       errorMessage.value = e.toString();
+      debugPrint('ProductDetail: Error loading product: $e');
     } finally {
       isLoading.value = false;
     }

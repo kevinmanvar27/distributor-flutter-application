@@ -11,10 +11,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/widgets/authenticated_image.dart';
 import '../../models/Home.dart' hide Image;
 import '../../routes/app_routes.dart';
 import '../cart/cart_controller.dart';
 import '../main/main_controller.dart';
+import '../../core/utils/responsive.dart';
 import 'home_controller.dart';
 
 class HomeView extends GetView<HomeController> {
@@ -23,17 +25,6 @@ class HomeView extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: Text(
-      //     'Distributor',
-      //     style: TextStyle(
-      //       color: Colors.white,
-      //       fontSize: 22,
-      //       fontWeight: FontWeight.w700,
-      //       letterSpacing: -0.5,
-      //     ),
-      //   ),
-      // ),
       backgroundColor: AppTheme.backgroundColor,
       body: Column(
         children: [
@@ -107,92 +98,6 @@ class HomeView extends GetView<HomeController> {
     );
   }
   
-  /// Premium AppBar with search bar
- /* Widget _buildPremiumAppBar() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: AppTheme.primaryGradient,
-      ),
-      child: SafeArea(
-        child: Column(
-          children: [
-            // Top bar with logo and icons
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
-              child: Row(
-                children: [
-                  // Logo/Brand
-                  const Text(
-                    'Distributor',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const Spacer(),
-                  // Notification icon - REMOVED
-                  // Cart icon - REMOVED
-                ],
-              ),
-            ),
-            // Search bar
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: GestureDetector(
-                onTap: _navigateToSearch,
-                child: Container(
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 12),
-                      Icon(
-                        Icons.search,
-                        color: AppTheme.primaryColor,
-                        size: 22,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Search for products...',
-                        style: AppTheme.bodyMedium.copyWith(
-                          color: AppTheme.textTertiary,
-                        ),
-                      ),
-                      const Spacer(),
-                      Container(
-                        height: 24,
-                        width: 1,
-                        color: AppTheme.borderColor,
-                      ),
-                      const SizedBox(width: 12),
-                      Icon(
-                        Icons.mic_none_rounded,
-                        color: AppTheme.primaryColor,
-                        size: 22,
-                      ),
-                      const SizedBox(width: 12),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }*/
   Widget _buildPremiumAppBar(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
@@ -203,34 +108,66 @@ class HomeView extends GetView<HomeController> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Title row
+            // Title row - Shows vendor branding
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.95),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Image.asset(
-                      'assets/images/distributor-app.png',
-                      width: 20,
-                      height: 20,
-                    ),
-                  ),
+                  // Vendor logo or default app icon
+                  Obx(() {
+                    final vendor = controller.vendor.value;
+                    final hasLogo = vendor?.storeLogoUrl != null && vendor!.storeLogoUrl!.isNotEmpty;
+                    
+                    return Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.95),
+                        shape: BoxShape.circle,
+                      ),
+                      child: hasLogo
+                          ? ClipOval(
+                              child: SizedBox(
+                                width: 28,
+                                height: 28,
+                                child: AuthenticatedImage(
+                                  imageUrl: vendor.storeLogoUrl!,
+                                  fit: BoxFit.cover,
+                                  errorWidget: Image.asset(
+                                    'assets/images/distributor-app.png',
+                                    width: 28,
+                                    height: 28,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Image.asset(
+                              'assets/images/distributor-app.png',
+                              width: 28,
+                              height: 28,
+                            ),
+                    );
+                  }),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Distributor App',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                  const Spacer(),
+                  // Vendor store name or default app name
+                  Obx(() {
+                    final vendor = controller.vendor.value;
+                    final storeName = vendor?.storeName ?? 'Distributor App';
+                    
+                    return Expanded(
+                      child: Text(
+                        storeName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    );
+                  }),
+                  const SizedBox(width: 8),
                 ],
               ),
             ),
@@ -502,7 +439,7 @@ class HomeView extends GetView<HomeController> {
     );
   }
   
-  /// Single category item - Circular design
+  /// Single category item - Circular design with image support
   Widget _buildCategoryItem(Category category, int index) {
     // Different colors for categories
     final colors = [
@@ -530,6 +467,7 @@ class HomeView extends GetView<HomeController> {
     final bgColor = colors[index % colors.length];
     final iconColor = iconColors[index % iconColors.length];
     final categoryIcon = _getCategoryIcon(category.name);
+    final hasImage = category.displayImageUrl != null && category.displayImageUrl!.isNotEmpty;
     
     return GestureDetector(
       onTap: () => _navigateToSubcategories(category),
@@ -539,7 +477,7 @@ class HomeView extends GetView<HomeController> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Circular icon container
+            // Circular icon/image container
             Container(
               width: 60,
               height: 60,
@@ -558,13 +496,24 @@ class HomeView extends GetView<HomeController> {
                   ),
                 ],
               ),
-              child: Center(
-                child: Icon(
-                  categoryIcon,
-                  color: iconColor,
-                  size: 26,
-                ),
-              ),
+              clipBehavior: Clip.antiAlias,
+              child: hasImage
+                  ? AuthenticatedImage(
+                      imageUrl: category.displayImageUrl!,
+                      fit: BoxFit.cover,
+                      errorWidget: Icon(
+                        categoryIcon,
+                        color: iconColor,
+                        size: 26,
+                      ),
+                    )
+                  : Center(
+                      child: Icon(
+                        categoryIcon,
+                        color: iconColor,
+                        size: 26,
+                      ),
+                    ),
             ),
             const SizedBox(height: 8),
             // Category name
@@ -647,7 +596,7 @@ class HomeView extends GetView<HomeController> {
     }
   }
   
-  /// Product Section with premium design
+  /// Product Section with premium design - FIXED for responsiveness
   Widget _buildProductSection({
     required String title,
     required String subtitle,
@@ -737,46 +686,90 @@ class HomeView extends GetView<HomeController> {
             ),
           ),
           const SizedBox(height: 12),
-          // Products horizontal list
-          SizedBox(
-            height: 300,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                final product = products[index];
-                return _buildProductCard(product);
-              },
-            ),
-          ),
+          
+          // RESPONSIVE PRODUCT GRID/LIST
+          Builder(builder: (context) {
+            // Get device type to determine layout
+            final deviceType = Responsive.getDeviceType(context);
+            final screenWidth = MediaQuery.of(context).size.width;
+            
+            // For small screens, use a horizontal scrollable list
+            if (deviceType == DeviceType.mobile && screenWidth < 500) {
+              return SizedBox(
+                height: 300,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  itemCount: products.length,
+                  itemBuilder: (context, index) {
+                    final product = products[index];
+                    return _buildProductCard(product, context);
+                  },
+                ),
+              );
+            } 
+            // For larger screens, use a responsive grid
+            else {
+              // Calculate number of columns based on screen width
+              final columns = screenWidth < 600 ? 2 : (screenWidth < 900 ? 3 : 4);
+              
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: columns,
+                    childAspectRatio: 0.7,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemCount: products.length > 8 ? 8 : products.length, // Limit to 8 items
+                  itemBuilder: (context, index) {
+                    final product = products[index];
+                    return _buildProductCard(product, context);
+                  },
+                ),
+              );
+            }
+          }),
         ],
       ),
     );
   }
   
-  /// Premium Product Card
-  Widget _buildProductCard(Product product) {
-    // Calculate discount percentage if applicable
-    double? discountPercent;
+  /// Premium Product Card - FIXED for responsiveness
+  /// Shows customer's discounted price from API
+  Widget _buildProductCard(Product product, BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final deviceType = Responsive.getDeviceType(context);
+    
+    // Determine card width based on device
+    final cardWidth = deviceType == DeviceType.mobile && screenWidth < 500 
+        ? 165.0 
+        : double.infinity;
 
-    final mrpValue = double.tryParse(product.mrp) ?? 0;
-    final sellingPriceValue = double.tryParse(product.sellingPrice) ?? 0;
+    // Use discountedPrice (customer's price) as the main price
+    final mrpValue = product.mrpValue;
+    final discountedPriceValue = product.discountedPriceValue;
     
-    final sellingPrice = (sellingPriceValue > 0) ? sellingPriceValue : mrpValue;
-    
-    if (mrpValue > 0 && sellingPrice < mrpValue) {
-      discountPercent = ((mrpValue - sellingPrice) / mrpValue * 100);
+    // Calculate discount percentage from MRP to customer's discounted price
+    double? discountPercent;
+    if (mrpValue > 0 && discountedPriceValue < mrpValue) {
+      discountPercent = ((mrpValue - discountedPriceValue) / mrpValue * 100);
     }
-    final formattedSellingPrice = '₹${_formatPrice(sellingPrice)}';
+    
+    final formattedPrice = '₹${_formatPrice(discountedPriceValue)}';
     final formattedMrp = '₹${_formatPrice(mrpValue)}';
     final hasDiscount = discountPercent != null && discountPercent > 0;
     
     return GestureDetector(
       onTap: () => _navigateToProductDetail(product.id),
       child: Container(
-        width: 165,
-        margin: const EdgeInsets.symmetric(horizontal: 4),
+        width: cardWidth,
+        margin: deviceType == DeviceType.mobile && screenWidth < 500 
+            ? const EdgeInsets.symmetric(horizontal: 4)
+            : EdgeInsets.zero,
         decoration: BoxDecoration(
           color: AppTheme.surfaceColor,
           borderRadius: BorderRadius.circular(AppTheme.radiusMd),
@@ -795,7 +788,8 @@ class HomeView extends GetView<HomeController> {
             // Product image with badges
             Expanded(
               flex: 2,
-              child: Stack(                children: [
+              child: Stack(
+                children: [
                   // Image
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(
@@ -804,11 +798,11 @@ class HomeView extends GetView<HomeController> {
                     child: Container(
                       width: double.infinity,
                       color: const Color(0xFFF8F8F8),
-                      child: product.mainPhoto?.fullUrl != null
-                          ? Image.network(
-                              product.mainPhoto!.fullUrl!,
+                      child: product.displayImageUrl != null && product.displayImageUrl!.isNotEmpty
+                          ? AuthenticatedImage(
+                              imageUrl: product.displayImageUrl!,
                               fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => _buildImagePlaceholder(),
+                              errorWidget: _buildImagePlaceholder(),
                             )
                           : _buildImagePlaceholder(),
                     ),
@@ -857,40 +851,6 @@ class HomeView extends GetView<HomeController> {
                         ),
                       ),
                     ),
-                  // Cart quantity badge
-                  Obx(() {
-                    final cartController = Get.find<CartController>();
-                    final qty = cartController.getQuantityInCart(product.id);
-                    if (qty > 0) {
-                      return Positioned(
-                        top: 8,
-                        right: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Text(
-                            '$qty',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  }),
                 ],
               ),
             ),
@@ -914,216 +874,137 @@ class HomeView extends GetView<HomeController> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
-                    // Price section
+                    // Price section - shows customer's discounted price
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          formattedSellingPrice,
-                          style: AppTheme.priceSmall.copyWith(
-                            color: AppTheme.textPrimary,
+                          formattedPrice,
+                          style: AppTheme.titleSmall.copyWith(
+                            color: AppTheme.primaryColor,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                        // MRP crossed out
                         if (hasDiscount) ...[
                           const SizedBox(width: 6),
                           Text(
                             formattedMrp,
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w400,
-                              letterSpacing: 0,
-                              height: 1.2,
-                              color: Color(0xFF9E9E9E),
+                            style: AppTheme.bodySmall.copyWith(
+                              color: AppTheme.textTertiary,
                               decoration: TextDecoration.lineThrough,
                             ),
                           ),
                         ],
                       ],
                     ),
-                    // Discount text
-                    if (hasDiscount)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Text(
-                          'Save ₹${_formatPrice(mrpValue - sellingPrice)}',
-                          style: AppTheme.discountStyle.copyWith(fontSize: 11),
-                        ),
-                      ),
-
-                    /*else
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Text(
-                          'Save ₹',
-                          style: AppTheme.discountStyle.copyWith(fontSize: 11),
-                        ),
-                      ),*/
+                    const Spacer(),
+                    // Add to cart button
+                    _buildAddToCartButton(product),
                   ],
                 ),
               ),
             ),
-            if (product.inStock)
-              Container(
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  border: Border(
-                    top: BorderSide(
-                      color: Color(0xFFE0E0E0),
-                      width: 1,
-                    ),
-                  ),
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () => controller.addToCart(product),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.add_shopping_cart_rounded,
-                            color: AppTheme.primaryColor,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Add to Cart',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.primaryColor,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
           ],
         ),
       ),
     );
   }
   
-  String _formatPrice(double price) {
-    if (price >= 10000000) {
-      return '${(price / 10000000).toStringAsFixed(2)} Cr';
-    } else if (price >= 100000) {
-      return '${(price / 100000).toStringAsFixed(2)} L';
-    } else if (price >= 1000) {
-      return '${(price / 1000).toStringAsFixed(1)}K';
-    }
-    return price.toStringAsFixed(0);
-  }
-  
-  Widget _buildImagePlaceholder() {
-    return Center(
-      child: Icon(
-        Icons.image_outlined,
-        color: AppTheme.textTertiary,
-        size: 40,
-      ),
-    );
+  /// Add to cart button
+  Widget _buildAddToCartButton(Product product) {
+    return Obx(() {
+      final cartController = Get.find<CartController>();
+      final inCart = cartController.isInCart(product.id);
+      
+      return SizedBox(
+        width: double.infinity,
+        height: 32,
+        child: ElevatedButton(
+          onPressed: product.inStock 
+              ? () => inCart 
+                  ? _navigateToCart() 
+                  : controller.addToCart(product)
+              : null,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: inCart ? AppTheme.accentColor : AppTheme.primaryColor,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+            ),
+          ),
+          child: Text(
+            product.inStock
+                ? inCart 
+                    ? 'Go to Cart' 
+                    : 'Add to Cart'
+                : 'Out of Stock',
+            style: AppTheme.labelSmall.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      );
+    });
   }
   
   /// Navigate to product detail
   void _navigateToProductDetail(int productId) {
-    Get.toNamed(
-      Routes.productDetail.replaceFirst(':id', productId.toString()),
+    Get.toNamed('/product/$productId');
+  }
+  
+  /// Navigate to cart
+  void _navigateToCart() {
+    try {
+      final mainController = Get.find<MainController>();
+      mainController.changeTab(2);
+    } catch (_) {}
+  }
+  
+  /// Format price with commas
+  String _formatPrice(double price) {
+    if (price == 0) return '0';
+    
+    final priceStr = price.toStringAsFixed(0);
+    final buffer = StringBuffer();
+    
+    for (int i = 0; i < priceStr.length; i++) {
+      if (i > 0 && (priceStr.length - i) % 2 == 1 && (priceStr.length - i) > 1) {
+        buffer.write(',');
+      }
+      buffer.write(priceStr[i]);
+    }
+    
+    return buffer.toString();
+  }
+  
+  /// Image placeholder
+  Widget _buildImagePlaceholder() {
+    return Center(
+      child: Icon(
+        Icons.image_outlined,
+        size: 50,
+        color: AppTheme.textTertiary.withValues(alpha: 0.3),
+      ),
     );
   }
   
-  /// Loading state with shimmer
+  /// Loading state
   Widget _buildLoadingState() {
-    return SingleChildScrollView(
+    return Center(
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Banner shimmer
-          Container(
-            height: 160,
-            margin: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppTheme.shimmerBase,
-              borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-            ),
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
           ),
-          // Categories shimmer
-          Container(
-            height: 120,
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            color: AppTheme.surfaceColor,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.all(16),
-              itemCount: 6,
-              itemBuilder: (_, __) => Container(
-                width: 70,
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: AppTheme.shimmerBase,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      height: 12,
-                      width: 50,
-                      decoration: BoxDecoration(
-                        color: AppTheme.shimmerBase,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          // Products shimmer
-          Container(
-            height: 280,
-            margin: const EdgeInsets.only(top: 8),
-            color: AppTheme.surfaceColor,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Container(
-                    height: 20,
-                    width: 150,
-                    decoration: BoxDecoration(
-                      color: AppTheme.shimmerBase,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    itemCount: 4,
-                    itemBuilder: (_, __) => Container(
-                      width: 165,
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      decoration: BoxDecoration(
-                        color: AppTheme.shimmerBase,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
+          const SizedBox(height: 16),
+          Text(
+            'Loading products...',
+            style: AppTheme.bodyMedium.copyWith(
+              color: AppTheme.textSecondary,
             ),
           ),
         ],
@@ -1139,37 +1020,42 @@ class HomeView extends GetView<HomeController> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppTheme.errorLight,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.error_outline_rounded,
-                size: 48,
+            Icon(
+              Icons.error_outline_rounded,
+              size: 60,
+              color: AppTheme.errorColor.withValues(alpha: 0.7),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Something went wrong',
+              style: AppTheme.titleMedium.copyWith(
                 color: AppTheme.errorColor,
               ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Oops! Something went wrong',
-              style: AppTheme.titleMedium,
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            Obx(() => Text(
-              controller.errorMessage.value,
+            Text(
+              controller.errorMessage.value.isNotEmpty
+                  ? controller.errorMessage.value
+                  : 'Failed to load products. Please try again.',
               style: AppTheme.bodyMedium.copyWith(
                 color: AppTheme.textSecondary,
               ),
               textAlign: TextAlign.center,
-            )),
+            ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: controller.loadHomeData,
+              onPressed: controller.refreshHomeData,
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Try Again'),
-              style: AppTheme.primaryButtonStyle,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+              ),
             ),
           ],
         ),
@@ -1185,36 +1071,38 @@ class HomeView extends GetView<HomeController> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppTheme.primarySurface,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.inventory_2_outlined,
-                size: 48,
-                color: AppTheme.primaryColor,
-              ),
+            Icon(
+              Icons.shopping_bag_outlined,
+              size: 60,
+              color: AppTheme.textTertiary.withValues(alpha: 0.7),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             Text(
-              'No products available',
+              'No Products Found',
               style: AppTheme.titleMedium,
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              'Check back later for new arrivals',
+              'We couldn\'t find any products to display.',
               style: AppTheme.bodyMedium.copyWith(
                 color: AppTheme.textSecondary,
               ),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: controller.refreshHomeData,
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Refresh'),
-              style: AppTheme.primaryButtonStyle,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+              ),
             ),
           ],
         ),

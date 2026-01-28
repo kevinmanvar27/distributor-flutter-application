@@ -15,7 +15,6 @@ import 'package:get/get.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/product_card.dart';
 import '../cart/cart_controller.dart';
-import '../wishlist/wishlist_controller.dart';
 import 'search_controller.dart' as search;
 
 class SearchView extends GetView<search.SearchController> {
@@ -798,13 +797,12 @@ class SearchView extends GetView<search.SearchController> {
                 }
                 
                 final product = controller.searchResults[index];
-                final wishlistController = Get.find<WishlistController>();
                 return ProductCard(
                   productId: product.id,
                   name: product.name,
                   imageUrl: product.imageUrl,
                   mrp: product.mrpValue,
-                  sellingPrice: product.sellingPriceValue,
+                  sellingPrice: product.discountedPriceValue, // Use customer's discounted price
                   inStock: product.inStock,
                   discountPercent: product.discountPercent,
                   description: product.description,
@@ -814,11 +812,6 @@ class SearchView extends GetView<search.SearchController> {
                     final cartController = Get.find<CartController>();
                     cartController.addToCart(product.toProductItem());
                   },
-                  showFavorite: true,
-                  onFavorite: () {
-                    wishlistController.toggleWishlist(product.toProductItem());
-                  },
-                  isFavorite: wishlistController.isInWishlist(product.id),
                 );
               },
             )),
